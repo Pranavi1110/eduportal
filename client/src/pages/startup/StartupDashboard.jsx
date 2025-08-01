@@ -1,0 +1,236 @@
+import React from 'react';
+import { Helmet } from 'react-helmet-async';
+import { useAuth } from '../../hooks/useAuth';
+import { 
+  Building, 
+  Users, 
+  Briefcase, 
+  DollarSign, 
+  TrendingUp,
+  Plus,
+  Eye
+} from 'lucide-react';
+
+const StartupDashboard = () => {
+  const { user } = useAuth();
+
+  // Mock data - replace with real API calls
+  const stats = [
+    { label: 'Active Tasks', value: '8', icon: Briefcase, color: 'text-blue-600' },
+    { label: 'Students Hired', value: '12', icon: Users, color: 'text-green-600' },
+    { label: 'Total Spent', value: '$5,240', icon: DollarSign, color: 'text-green-600' },
+    { label: 'Avg. Rating', value: '4.8', icon: TrendingUp, color: 'text-purple-600' }
+  ];
+
+  const recentTasks = [
+    {
+      id: 1,
+      title: 'Frontend Development for E-commerce',
+      student: 'John Doe',
+      status: 'in-progress',
+      progress: 75,
+      deadline: '2024-01-15',
+      budget: '$500'
+    },
+    {
+      id: 2,
+      title: 'Mobile App UI Design',
+      student: 'Jane Smith',
+      status: 'completed',
+      progress: 100,
+      deadline: '2024-01-10',
+      budget: '$300'
+    },
+    {
+      id: 3,
+      title: 'Data Analysis Project',
+      student: 'Mike Johnson',
+      status: 'review',
+      progress: 90,
+      deadline: '2024-01-20',
+      budget: '$400'
+    }
+  ];
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'in-progress':
+        return 'bg-blue-100 text-blue-800';
+      case 'review':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  return (
+    <>
+      <Helmet>
+        <title>Startup Dashboard - Hubinity</title>
+        <meta name="description" content="Startup dashboard for Hubinity platform" />
+      </Helmet>
+
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-primary-white shadow-soft">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-garamond font-bold text-primary-dark">
+                  Welcome back, {user?.firstName}!
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Here's what's happening with your startup
+                </p>
+              </div>
+              <div className="flex space-x-3">
+                <button className="btn-secondary">
+                  <Users className="w-4 h-4 mr-2" />
+                  Browse Students
+                </button>
+                <button className="btn-primary">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Post New Task
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {stats.map((stat, index) => (
+              <div key={index} className="card">
+                <div className="flex items-center">
+                  <div className={`p-3 rounded-lg bg-gray-100 ${stat.color}`}>
+                    <stat.icon className="w-6 h-6" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">{stat.label}</p>
+                    <p className="text-2xl font-bold text-primary-dark">{stat.value}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Recent Tasks */}
+            <div className="lg:col-span-2">
+              <div className="card">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-primary-dark">
+                    Recent Tasks
+                  </h2>
+                  <button className="btn-ghost text-sm">
+                    View All
+                  </button>
+                </div>
+                
+                <div className="space-y-4">
+                  {recentTasks.map((task) => (
+                    <div key={task.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-soft transition-shadow">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-primary-dark mb-1">
+                            {task.title}
+                          </h3>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {task.student} • {task.budget}
+                          </p>
+                          <div className="flex items-center space-x-4 mb-3">
+                            <span className={`badge ${getStatusColor(task.status)}`}>
+                              {task.status.replace('-', ' ')}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              Due: {new Date(task.deadline).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-primary-button h-2 rounded-full transition-all"
+                              style={{ width: `${task.progress}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {task.progress}% complete
+                          </p>
+                        </div>
+                        <button className="btn-ghost p-2">
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions & Analytics */}
+            <div className="space-y-6">
+              {/* Quick Actions */}
+              <div className="card">
+                <h2 className="text-xl font-semibold text-primary-dark mb-4">
+                  Quick Actions
+                </h2>
+                <div className="space-y-3">
+                  <button className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors">
+                    <Briefcase className="w-5 h-5 text-primary-button mr-3" />
+                    <span>Post New Task</span>
+                  </button>
+                  <button className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors">
+                    <Users className="w-5 h-5 text-primary-button mr-3" />
+                    <span>Browse Students</span>
+                  </button>
+                  <button className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors">
+                    <TrendingUp className="w-5 h-5 text-primary-button mr-3" />
+                    <span>View Analytics</span>
+                  </button>
+                  <button className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors">
+                    <Building className="w-5 h-5 text-primary-button mr-3" />
+                    <span>Update Profile</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Company Stats */}
+              <div className="card">
+                <h2 className="text-xl font-semibold text-primary-dark mb-4">
+                  Company Stats
+                </h2>
+                <div className="space-y-3">
+                  <div className="flex items-center p-3 bg-blue-50 rounded-lg">
+                    <Building className="w-5 h-5 text-blue-600 mr-3" />
+                    <div>
+                      <p className="font-medium text-primary-dark">TechStart Inc.</p>
+                      <p className="text-sm text-gray-600">Early-stage Startup</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center p-3 bg-green-50 rounded-lg">
+                    <Users className="w-5 h-5 text-green-600 mr-3" />
+                    <div>
+                      <p className="font-medium text-primary-dark">12 Students</p>
+                      <p className="text-sm text-gray-600">Currently working</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center p-3 bg-purple-50 rounded-lg">
+                    <DollarSign className="w-5 h-5 text-purple-600 mr-3" />
+                    <div>
+                      <p className="font-medium text-primary-dark">$5,240</p>
+                      <p className="text-sm text-gray-600">Total spent</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default StartupDashboard; 
