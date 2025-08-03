@@ -6,9 +6,11 @@ import {
   createStudentProfile,
 } from "../routes/profile";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 const Profile = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const userId = user?._id || user?.id;
@@ -64,11 +66,16 @@ const Profile = () => {
 
   // Add mutation
   const addMutation = useMutation(
-    (data) => createStudentProfile({ ...data, userId }),
+    (data) => {
+      // Map collegeEmail to email for backend compatibility
+      const payload = { ...data, userId, email: data.collegeEmail };
+      return createStudentProfile(payload);
+    },
     {
       onSuccess: () => {
         toast.success("Profile created!");
         queryClient.invalidateQueries(["student-profile", userId]);
+        navigate("/student/dashboard");
       },
       onError: (err) => {
         const msg =
@@ -87,6 +94,7 @@ const Profile = () => {
       onSuccess: () => {
         toast.success("Profile updated!");
         queryClient.invalidateQueries(["student-profile", userId]);
+        navigate("/student/dashboard");
       },
       onError: (err) => {
         const msg =

@@ -234,30 +234,6 @@ const Register = () => {
                 </div>
               )}
 
-              {userType === "startup" && (
-                <div>
-                  <label htmlFor="companyName" className="form-label">
-                    Company name
-                  </label>
-                  <input
-                    id="companyName"
-                    type="text"
-                    {...register("companyName", {
-                      required: "Company name is required",
-                    })}
-                    className={`input-field ${
-                      errors.companyName ? "border-red-500" : ""
-                    }`}
-                    placeholder="Your company name"
-                  />
-                  {errors.companyName && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.companyName.message}
-                    </p>
-                  )}
-                </div>
-              )}
-
               {/* Password Fields */}
               <div>
                 <label htmlFor="password" className="form-label">

@@ -6,7 +6,7 @@ const Startup = require("../models/Startup");
 const Task = require("../models/Task");
 const Student = require("../models/Student");
 const Certificate = require("../models/Certificate");
-
+const User = require("../models/User");
 // Update startup profile
 router.put("/profile", verifyJWT, async (req, res) => {
   try {
@@ -94,6 +94,32 @@ router.post("/tasks/:taskId/approve", verifyJWT, async (req, res) => {
     res.json({ message: approve ? "Task approved" : "Task rejected" });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
+  }
+});
+ // or the correct path to Startup model
+router.get("/all", async (req, res) => {
+  try {
+    // Pull startup users and select only needed fields
+    const startups = await User.find(
+      { userType: "startup" },
+      "_id companyName email"
+    );
+
+    res.json(startups);
+  } catch (error) {
+    console.error("Error fetching startups:", error);
+    res.status(500).json({ message: "Failed to fetch startups" });
+  }
+});
+
+router.get("/names", async (req, res) => {
+  try {
+    const startups = await Startup.find({}, "_id companyName");
+    console.log(startups);
+    res.json(startups); // Array of { _id, companyName }
+  } catch (error) {
+    console.error("Error fetching startup names:", error);
+    res.status(500).json({ message: "Failed to fetch startup names" });
   }
 });
 

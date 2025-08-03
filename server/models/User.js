@@ -23,6 +23,12 @@ const UserSchema = new mongoose.Schema(
       enum: ["student", "startup", "admin"],
       default: "student",
     },
+    companyName:{
+type: String,
+ required: function () {
+      return this.userType === "startup";
+    }
+    },
     firstName: {
       type: String,
       trim: true,

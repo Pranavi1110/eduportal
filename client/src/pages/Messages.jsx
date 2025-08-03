@@ -4,7 +4,7 @@ import api from "../services/api";
 import { useAuth } from "../hooks/useAuth";
 
 const Messages = () => {
-  const { authData } = useAuth();
+  const { user } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -98,9 +98,16 @@ const Messages = () => {
                     onClick={() => setSelectedUser(user)}
                   >
                     <div className="font-semibold">
-                      {user.firstName} {user.lastName}
+                      {user.userType === "startup"
+                        ? user.companyName
+                        : `${user.firstName} ${user.lastName}`}
                     </div>
-                    <div className="text-xs text-gray-500">{user.email}</div>
+                    {user.userType === "startup" && (
+                      <div className="text-xs text-gray-500">{user.email}</div>
+                    )}
+                    {user.userType !== "startup" && (
+                      <div className="text-xs text-gray-500">{user.email}</div>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -114,8 +121,15 @@ const Messages = () => {
               </div>
             ) : (
               <>
-                <div className="font-bold text-lg mb-2 border-b pb-2">
-                  Chat with {selectedUser.firstName} {selectedUser.lastName}
+                <div className="mb-2 border-b pb-2">
+                  {selectedUser.userType === "startup" ? (
+                    <>
+                      <div className="font-bold text-lg">{selectedUser.companyName}</div>
+                      <div className="text-xs text-gray-500 mt-1">{selectedUser.email}</div>
+                    </>
+                  ) : (
+                    <div className="font-bold text-lg">Chat with {selectedUser.firstName} {selectedUser.lastName}</div>
+                  )}
                 </div>
                 <div className="flex-1 overflow-y-auto mb-4 bg-gray-50 p-3 rounded border">
                   {msgLoading ? (
@@ -126,9 +140,8 @@ const Messages = () => {
                     <div className="text-gray-400">No messages yet.</div>
                   ) : (
                     messages.map((msg) => {
-                      const myId = String(
-                        authData?.user?.id || authData?.user?._id
-                      );
+                      const myId = String(user?._id || user?.id);
+                      // Always show my messages to the right, others to the left
                       const isMine = String(msg.sender) === myId;
                       return (
                         <div

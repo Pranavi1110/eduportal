@@ -17,7 +17,7 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [messagesError, setMessagesError] = useState(null);
-  const { authData } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { userId } = useParams();
   // Fetch messages when userId changes
@@ -42,20 +42,28 @@ const Chat = () => {
       setLoading(true);
       try {
         let data = [];
-        if (authData?.user?.userType === "student") {
-          data = await fetchAllStartups();
+        if (user?.userType === "student") {
+          const startupUsers = await fetchAllStartups(); // These should already have companyName
+          data = startupUsers.map((u) => ({
+            ...u,
+            companyName: u.companyName || "Unknown",
+          }));
         } else {
+          // Just fetch students directly
           data = await fetchAllStudents();
         }
+
         setUsers(data);
         console.log("Fetched users for chat:", data);
       } catch (e) {
+        console.error(e);
         setError("Failed to load users");
       }
       setLoading(false);
     };
+
     fetchUsers();
-  }, [authData]);
+  }, [user]);
 
   const selectedUser = userId ? users.find((u) => u._id === userId) : null;
 
@@ -84,7 +92,7 @@ const Chat = () => {
         {!userId ? (
           <>
             <h2 className="text-2xl font-bold mb-6">
-              {authData?.user?.userType === "student" ? "Startups" : "Students"}
+              {user?.userType === "student" ? "Startups" : "Students"}
             </h2>
             {loading ? (
               <div>Loading...</div>
@@ -92,34 +100,30 @@ const Chat = () => {
               <div className="text-red-500">{error}</div>
             ) : users.length === 0 ? (
               <div>
-                No{" "}
-                {authData?.user?.userType === "student"
-                  ? "startups"
-                  : "students"}{" "}
+                No {user?.userType === "student" ? "startups" : "students"}{" "}
                 found.
               </div>
             ) : (
               <div className="w-full max-w-2xl space-y-4">
-                {(authData?.user?.userType === "student"
+                {(user?.userType === "student"
                   ? users.filter((u) => u.userType === "startup")
                   : users.filter((u) => u.userType === "student")
                 ).map((user) => {
-                  // Compose display name for both students and startups
-                  let displayName = user.firstName || "";
-                  if (user.lastName) displayName += ` ${user.lastName}`;
-                  if (user.companyName) displayName += ` (${user.companyName})`;
-                  displayName = displayName.trim() || user.email;
-
-                  // Compose info line: skills for students, company for startups
+                  // Compose display for startups (company name above, email below)
+                  let displayName =
+                    user.userType === "startup"
+                      ? user.companyName
+                      : `${user.firstName} ${user.lastName}`;
+                  console.log(user.companyName);
                   let infoLine = "";
-                  if (user.skills && user.skills.length > 0) {
-                    infoLine = `Skills: ${user.skills
-                      .map((sk) => sk.name || sk)
-                      .join(", ")}`;
-                  } else if (user.companyName) {
-                    infoLine = `Company: ${user.companyName}`;
-                  } else {
-                    infoLine = "Skills: None";
+                  if (user.userType === "student") {
+                    if (user.skills && user.skills.length > 0) {
+                      infoLine = `Skills: ${user.skills
+                        .map((sk) => sk.name || sk)
+                        .join(", ")}`;
+                    } else {
+                      infoLine = "Skills: None";
+                    }
                   }
 
                   return (
@@ -131,9 +135,16 @@ const Chat = () => {
                         <div className="font-semibold text-lg">
                           {displayName}
                         </div>
-                        <div className="text-gray-600 text-sm mt-1">
-                          {infoLine}
-                        </div>
+                        {user.userType === "startup" && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            {user.email}
+                          </div>
+                        )}
+                        {user.userType === "student" && (
+                          <div className="text-gray-600 text-sm mt-1">
+                            {infoLine}
+                          </div>
+                        )}
                       </div>
                       <button
                         className="btn btn-primary mt-2 md:mt-0"
@@ -154,7 +165,7 @@ const Chat = () => {
               onClick={() => navigate("/chat")}
             >
               &larr; Back to{" "}
-              {authData?.user?.userType === "student" ? "startups" : "students"}
+              {user?.userType === "student" ? "startups" : "students"}
             </button>
             {selectedUser ? (
               <>
@@ -176,14 +187,14 @@ const Chat = () => {
                       <div
                         key={msg._id}
                         className={`mb-2 flex ${
-                          msg.sender === authData?.user?.id
+                          msg.sender === user?.id
                             ? "justify-end"
                             : "justify-start"
                         }`}
                       >
                         <div
                           className={`px-3 py-2 rounded-lg max-w-xs ${
-                            msg.sender === authData?.user?.id
+                            msg.sender === user?.id
                               ? "bg-blue-500 text-white"
                               : "bg-gray-200 text-gray-800"
                           }`}

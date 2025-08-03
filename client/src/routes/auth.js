@@ -1,5 +1,6 @@
 // Registration route using fetch
 export async function registerUser(userData) {
+  console.log("Sending user data:", userData); 
   const response = await fetch("http://localhost:5000/api/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

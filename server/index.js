@@ -22,17 +22,32 @@ const jwt = require("jsonwebtoken");
 
 // Register route
 app.post("/api/register", async (req, res) => {
-  const { firstName, lastName, email, password, userType } = req.body;
+  const { firstName, lastName, email, password, userType, companyName } = req.body;
+
   try {
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ message: "User already exists" });
-    user = new User({ firstName, lastName, email, password, userType });
+
+    // Include companyName only for startup users
+    const newUserData = {
+      firstName,
+      lastName,
+      email,
+      password,
+      userType,
+      ...(userType === "startup" && { companyName }),
+    };
+
+    user = new User(newUserData);
     await user.save();
+
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
+    console.error("Registration error:", err);
     res.status(400).json({ message: err.message });
   }
 });
+
 
 // Login route
 app.post("/api/login", async (req, res) => {
