@@ -11,14 +11,21 @@ router.post("/profile", async (req, res) => {
       return res.status(400).json({ error: "userId is required" });
     }
     // Prevent duplicate profiles for the same userId
-    let existing = await Student.findOne({ userId });
-    if (existing) {
-      return res
-        .status(400)
-        .json({ error: "Profile already exists for this user." });
+    // Find the existing user to get required fields
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).json({ error: "User not found for this userId." });
     }
-    const student = new Student({ ...req.body, userId });
-    await student.save();
+    // Only pass userId and profile fields (do NOT include email, password, userType)
+    // Upsert (create or update) the Student profile for this userId
+    const profileFields = { ...req.body };
+    delete profileFields._id;
+    // Remove any fields that should not be overwritten
+    const student = await Student.findOneAndUpdate(
+      { userId },
+      { $set: profileFields },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
     res.status(201).json(student);
   } catch (err) {
     res.status(500).json({ error: err.message || "Server error" });

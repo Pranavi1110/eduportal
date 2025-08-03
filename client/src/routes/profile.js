@@ -17,8 +17,9 @@ export async function updateStudentProfile(userId, data) {
     },
     body: JSON.stringify({ ...data, userId }),
   });
-  if (!res.ok) throw new Error("Failed to update profile");
-  return res.json();
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.error || "Failed to update profile");
+  return result;
 }
 
 export async function createStudentProfile(data) {
@@ -29,6 +30,7 @@ export async function createStudentProfile(data) {
     },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Failed to create profile");
-  return res.json();
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.error || "Failed to create profile");
+  return result;
 }

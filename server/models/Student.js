@@ -133,70 +133,7 @@ const studentSchema = new mongoose.Schema({
       },
     },
   ],
-  badges: [
-    {
-      name: {
-        type: String,
-        required: true,
-      },
-      description: {
-        type: String,
-      },
-      icon: {
-        type: String,
-      },
-      earnedAt: {
-        type: Date,
-        default: Date.now,
-      },
-      skill: {
-        type: String,
-        required: true,
-      },
-    },
-  ],
-  certificates: [
-    {
-      title: {
-        type: String,
-        required: true,
-      },
-      description: {
-        type: String,
-      },
-      issuedBy: {
-        type: String,
-        required: true,
-      },
-      issuedAt: {
-        type: Date,
-        default: Date.now,
-      },
-      certificateUrl: {
-        type: String,
-      },
-    },
-  ],
-  rating: {
-    average: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 5,
-    },
-    totalReviews: {
-      type: Number,
-      default: 0,
-    },
-  },
-  completedTasks: {
-    type: Number,
-    default: 0,
-  },
-  totalEarnings: {
-    type: Number,
-    default: 0,
-  },
+  // badges, certificates, rating, completedTasks, totalEarnings removed
 });
 
 module.exports = User.discriminator("Student", studentSchema);
