@@ -2,6 +2,28 @@
 const express = require("express");
 const router = express.Router();
 const { verifyJWT } = require("../middleware/auth");
+
+// Create a new student profile
+router.post("/profile", async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+    // Prevent duplicate profiles for the same userId
+    let existing = await Student.findOne({ userId });
+    if (existing) {
+      return res
+        .status(400)
+        .json({ error: "Profile already exists for this user." });
+    }
+    const student = new Student({ ...req.body, userId });
+    await student.save();
+    res.status(201).json(student);
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Server error" });
+  }
+});
 const Student = require("../models/Student");
 const Task = require("../models/Task");
 const Certificate = require("../models/Certificate");
@@ -19,12 +41,18 @@ router.get("/login-details", verifyJWT, async (req, res) => {
 });
 
 // Get student dashboard data (tasks, notifications, profile) - PUBLIC
+// Get student dashboard data (tasks, notifications, profile) - PUBLIC
 router.get("/dashboard", async (req, res) => {
   try {
-    // For public access, you may want to fetch a default student or by query param
-    // Here, just fetch the first student for demo (customize as needed)
-    const student = await Student.findOne();
-    const tasks = await Task.find({ assignedTo: student?._id });
+    const { userId } = req.query;
+    let student = null;
+    let tasks = [];
+    if (userId) {
+      student = await Student.findOne({ userId });
+      if (student) {
+        tasks = await Task.find({ assignedTo: student._id });
+      }
+    }
     res.json({ student, tasks });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
@@ -56,14 +84,14 @@ router.post("/tasks/:taskId/submit", verifyJWT, async (req, res) => {
 router.put("/profile", async (req, res) => {
   try {
     const update = req.body;
-    let filter = {};
-    if (update.userId) {
-      filter = { userId: update.userId };
+    if (!update.userId) {
+      return res.status(400).json({ error: "userId is required" });
     }
+    let filter = { userId: update.userId };
     let student = await Student.findOneAndUpdate(filter, update, { new: true });
     if (!student) {
       // If no student exists, create a new one
-      student = new Student(update);
+      student = new Student({ ...update, userId: update.userId });
       await student.save();
     }
     res.json(student);

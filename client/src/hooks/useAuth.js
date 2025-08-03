@@ -54,10 +54,14 @@ export const useAuth = () => {
     },
   });
 
-  // Logout mutation stub
+  // Logout mutation
   const logoutMutation = {
     mutate: () => {
-      toast("Logout not implemented");
+      setAuthData(null);
+      localStorage.removeItem("auth");
+      queryClient.removeQueries("auth");
+      toast.success("Logged out successfully!");
+      navigate("/login");
     },
   };
 

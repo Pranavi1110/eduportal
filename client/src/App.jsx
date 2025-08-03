@@ -1,3 +1,8 @@
+// ...existing code...
+import Chat from "./pages/Chat";
+import StartupProfile from "./pages/startup/StartupProfile";
+import PostTask from "./pages/startup/PostTask";
+import BrowseStudents from "./pages/startup/BrowseStudents";
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -160,6 +165,22 @@ const App = () => {
                   }
                 />
                 <Route
+                  path="/chat"
+                  element={
+                    <ProtectedRoute>
+                      <Chat />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/chat/:userId"
+                  element={
+                    <ProtectedRoute>
+                      <Chat />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/certificates"
                   element={
                     <ProtectedRoute>
@@ -184,6 +205,14 @@ const App = () => {
                   element={
                     <ProtectedRoute allowedUserTypes={["startup"]}>
                       <StartupDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/startup/post-task"
+                  element={
+                    <ProtectedRoute allowedUserTypes={["startup"]}>
+                      <PostTask />
                     </ProtectedRoute>
                   }
                 />

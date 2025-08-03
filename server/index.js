@@ -66,11 +66,15 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-// Student and Startup routes
+// Student, Startup, Chat, and Users routes
 const studentRoutes = require("./routes/student");
 const startupRoutes = require("./routes/startup");
+const chatRoutes = require("./routes/chat");
+const usersRoutes = require("./routes/users");
 app.use("/api/student", studentRoutes);
 app.use("/api/startup", startupRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/users", usersRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

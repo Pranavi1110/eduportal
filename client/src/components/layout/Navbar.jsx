@@ -1,7 +1,17 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, LogOut, Settings, Home, Briefcase, MessageSquare, Award } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  Menu,
+  X,
+  User,
+  LogOut,
+  Settings,
+  Home,
+  Briefcase,
+  MessageSquare,
+  Award,
+} from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -17,10 +27,11 @@ const Navbar = () => {
   };
 
   const navigation = [
-    { name: 'Home', href: '/', icon: Home },
-    { name: 'Tasks', href: '/tasks', icon: Briefcase },
-    { name: 'Messages', href: '/messages', icon: MessageSquare },
-    { name: 'Certificates', href: '/certificates', icon: Award },
+    { name: "Home", href: "/", icon: Home },
+    { name: "Tasks", href: "/tasks", icon: Briefcase },
+    { name: "Chat", href: "/chat", icon: MessageSquare },
+    { name: "Messages", href: "/messages", icon: MessageSquare },
+    { name: "Certificates", href: "/certificates", icon: Award },
   ];
 
   return (
@@ -48,8 +59,8 @@ const Navbar = () => {
                   to={item.href}
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     isActive(item.href)
-                      ? 'text-primary-button bg-primary-card'
-                      : 'text-gray-600 hover:text-primary-dark hover:bg-gray-50'
+                      ? "text-primary-button bg-primary-card"
+                      : "text-gray-600 hover:text-primary-dark hover:bg-gray-50"
                   }`}
                 >
                   {item.name}
@@ -67,7 +78,7 @@ const Navbar = () => {
                     <div className="flex items-center space-x-2">
                       <div className="w-8 h-8 bg-primary-button rounded-full flex items-center justify-center">
                         <span className="text-white text-sm font-medium">
-                          {user?.firstName?.charAt(0) || 'U'}
+                          {user?.firstName?.charAt(0) || "U"}
                         </span>
                       </div>
                       <span className="text-sm font-medium text-primary-dark">
@@ -110,7 +121,7 @@ const Navbar = () => {
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
                           >
                             <LogOut className="mr-3 h-4 w-4" />
-                            {isLogoutLoading ? 'Signing out...' : 'Sign out'}
+                            {isLogoutLoading ? "Signing out..." : "Sign out"}
                           </button>
                         </div>
                       )}
@@ -126,10 +137,7 @@ const Navbar = () => {
                 >
                   Sign in
                 </Link>
-                <Link
-                  to="/register"
-                  className="btn-primary text-sm"
-                >
+                <Link to="/register" className="btn-primary text-sm">
                   Get Started
                 </Link>
               </div>
@@ -162,8 +170,8 @@ const Navbar = () => {
                 to={item.href}
                 className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
                   isActive(item.href)
-                    ? 'text-primary-button bg-primary-card'
-                    : 'text-gray-600 hover:text-primary-dark hover:bg-gray-50'
+                    ? "text-primary-button bg-primary-card"
+                    : "text-gray-600 hover:text-primary-dark hover:bg-gray-50"
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -177,7 +185,7 @@ const Navbar = () => {
                 <div className="flex items-center px-4">
                   <div className="w-8 h-8 bg-primary-button rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
-                      {user?.firstName?.charAt(0) || 'U'}
+                      {user?.firstName?.charAt(0) || "U"}
                     </span>
                   </div>
                   <div className="ml-3">
@@ -215,7 +223,7 @@ const Navbar = () => {
                     className="flex items-center w-full px-4 py-2 text-base font-medium text-gray-600 hover:text-primary-dark hover:bg-gray-50 disabled:opacity-50"
                   >
                     <LogOut className="mr-3 h-5 w-5" />
-                    {isLogoutLoading ? 'Signing out...' : 'Sign out'}
+                    {isLogoutLoading ? "Signing out..." : "Sign out"}
                   </button>
                 </div>
               </div>
@@ -246,4 +254,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar; 
+export default Navbar;

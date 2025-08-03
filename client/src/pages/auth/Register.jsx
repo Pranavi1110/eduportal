@@ -1,29 +1,38 @@
-import React, { useState } from 'react';
-import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { Eye, EyeOff, User, Mail, Lock, Building, GraduationCap, ArrowRight } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import React, { useState } from "react";
+import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import {
+  Eye,
+  EyeOff,
+  User,
+  Mail,
+  Lock,
+  Building,
+  GraduationCap,
+  ArrowRight,
+} from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [userType, setUserType] = useState('student');
+  const [userType, setUserType] = useState("student");
   const { register: registerUser, isRegisterLoading } = useAuth();
 
   const {
     register,
     handleSubmit,
     watch,
-    formState: { errors }
+    formState: { errors },
   } = useForm();
 
-  const password = watch('password');
+  const password = watch("password");
 
   const onSubmit = (data) => {
     const userData = {
       ...data,
-      userType
+      userType,
     };
     registerUser(userData);
   };
@@ -56,11 +65,11 @@ const Register = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => setUserType('student')}
+                    onClick={() => setUserType("student")}
                     className={`p-3 rounded-lg border-2 transition-colors ${
-                      userType === 'student'
-                        ? 'border-primary-button bg-primary-button text-white'
-                        : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                      userType === "student"
+                        ? "border-primary-button bg-primary-button text-white"
+                        : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
                     }`}
                   >
                     <GraduationCap className="w-5 h-5 mx-auto mb-2" />
@@ -68,11 +77,11 @@ const Register = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setUserType('startup')}
+                    onClick={() => setUserType("startup")}
                     className={`p-3 rounded-lg border-2 transition-colors ${
-                      userType === 'startup'
-                        ? 'border-primary-button bg-primary-button text-white'
-                        : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                      userType === "startup"
+                        ? "border-primary-button bg-primary-button text-white"
+                        : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
                     }`}
                   >
                     <Building className="w-5 h-5 mx-auto mb-2" />
@@ -81,59 +90,100 @@ const Register = () => {
                 </div>
               </div>
 
-              {/* Name Fields */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Name/Company Fields */}
+              {userType === "student" ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="firstName" className="form-label">
+                      First name
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <User className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        id="firstName"
+                        type="text"
+                        autoComplete="given-name"
+                        {...register("firstName", {
+                          required: "First name is required",
+                          minLength: {
+                            value: 2,
+                            message: "First name must be at least 2 characters",
+                          },
+                        })}
+                        className={`input-field pl-10 ${
+                          errors.firstName ? "border-red-500" : ""
+                        }`}
+                        placeholder="First name"
+                      />
+                    </div>
+                    {errors.firstName && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.firstName.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label htmlFor="lastName" className="form-label">
+                      Last name
+                    </label>
+                    <input
+                      id="lastName"
+                      type="text"
+                      autoComplete="family-name"
+                      {...register("lastName", {
+                        required: "Last name is required",
+                        minLength: {
+                          value: 2,
+                          message: "Last name must be at least 2 characters",
+                        },
+                      })}
+                      className={`input-field ${
+                        errors.lastName ? "border-red-500" : ""
+                      }`}
+                      placeholder="Last name"
+                    />
+                    {errors.lastName && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.lastName.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ) : (
                 <div>
-                  <label htmlFor="firstName" className="form-label">
-                    First name
+                  <label htmlFor="companyName" className="form-label">
+                    Company Name
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="h-5 w-5 text-gray-400" />
+                      <Building className="h-5 w-5 text-gray-400" />
                     </div>
                     <input
-                      id="firstName"
+                      id="companyName"
                       type="text"
-                      autoComplete="given-name"
-                      {...register('firstName', {
-                        required: 'First name is required',
+                      autoComplete="organization"
+                      {...register("companyName", {
+                        required: "Company name is required",
                         minLength: {
                           value: 2,
-                          message: 'First name must be at least 2 characters'
-                        }
+                          message: "Company name must be at least 2 characters",
+                        },
                       })}
-                      className={`input-field pl-10 ${errors.firstName ? 'border-red-500' : ''}`}
-                      placeholder="First name"
+                      className={`input-field pl-10 ${
+                        errors.companyName ? "border-red-500" : ""
+                      }`}
+                      placeholder="Company name"
                     />
                   </div>
-                  {errors.firstName && (
-                    <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
+                  {errors.companyName && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.companyName.message}
+                    </p>
                   )}
                 </div>
-
-                <div>
-                  <label htmlFor="lastName" className="form-label">
-                    Last name
-                  </label>
-                  <input
-                    id="lastName"
-                    type="text"
-                    autoComplete="family-name"
-                    {...register('lastName', {
-                      required: 'Last name is required',
-                      minLength: {
-                        value: 2,
-                        message: 'Last name must be at least 2 characters'
-                      }
-                    })}
-                    className={`input-field ${errors.lastName ? 'border-red-500' : ''}`}
-                    placeholder="Last name"
-                  />
-                  {errors.lastName && (
-                    <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
-                  )}
-                </div>
-              </div>
+              )}
 
               {/* Email Field */}
               <div>
@@ -148,24 +198,28 @@ const Register = () => {
                     id="email"
                     type="email"
                     autoComplete="email"
-                    {...register('email', {
-                      required: 'Email is required',
+                    {...register("email", {
+                      required: "Email is required",
                       pattern: {
                         value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: 'Invalid email address'
-                      }
+                        message: "Invalid email address",
+                      },
                     })}
-                    className={`input-field pl-10 ${errors.email ? 'border-red-500' : ''}`}
+                    className={`input-field pl-10 ${
+                      errors.email ? "border-red-500" : ""
+                    }`}
                     placeholder="Enter your email"
                   />
                 </div>
                 {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
 
               {/* Conditional Fields */}
-              {userType === 'student' && (
+              {userType === "student" && (
                 <div>
                   <label htmlFor="college" className="form-label">
                     College/University (optional)
@@ -173,14 +227,14 @@ const Register = () => {
                   <input
                     id="college"
                     type="text"
-                    {...register('college')}
+                    {...register("college")}
                     className="input-field"
                     placeholder="Your college or university"
                   />
                 </div>
               )}
 
-              {userType === 'startup' && (
+              {userType === "startup" && (
                 <div>
                   <label htmlFor="companyName" className="form-label">
                     Company name
@@ -188,14 +242,18 @@ const Register = () => {
                   <input
                     id="companyName"
                     type="text"
-                    {...register('companyName', {
-                      required: 'Company name is required'
+                    {...register("companyName", {
+                      required: "Company name is required",
                     })}
-                    className={`input-field ${errors.companyName ? 'border-red-500' : ''}`}
+                    className={`input-field ${
+                      errors.companyName ? "border-red-500" : ""
+                    }`}
                     placeholder="Your company name"
                   />
                   {errors.companyName && (
-                    <p className="mt-1 text-sm text-red-600">{errors.companyName.message}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.companyName.message}
+                    </p>
                   )}
                 </div>
               )}
@@ -211,16 +269,18 @@ const Register = () => {
                   </div>
                   <input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     autoComplete="new-password"
-                    {...register('password', {
-                      required: 'Password is required',
+                    {...register("password", {
+                      required: "Password is required",
                       minLength: {
                         value: 6,
-                        message: 'Password must be at least 6 characters'
-                      }
+                        message: "Password must be at least 6 characters",
+                      },
                     })}
-                    className={`input-field pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                    className={`input-field pl-10 pr-10 ${
+                      errors.password ? "border-red-500" : ""
+                    }`}
                     placeholder="Create a password"
                   />
                   <button
@@ -236,7 +296,9 @@ const Register = () => {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
 
@@ -250,13 +312,16 @@ const Register = () => {
                   </div>
                   <input
                     id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
+                    type={showConfirmPassword ? "text" : "password"}
                     autoComplete="new-password"
-                    {...register('confirmPassword', {
-                      required: 'Please confirm your password',
-                      validate: value => value === password || 'Passwords do not match'
+                    {...register("confirmPassword", {
+                      required: "Please confirm your password",
+                      validate: (value) =>
+                        value === password || "Passwords do not match",
                     })}
-                    className={`input-field pl-10 pr-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                    className={`input-field pl-10 pr-10 ${
+                      errors.confirmPassword ? "border-red-500" : ""
+                    }`}
                     placeholder="Confirm your password"
                   />
                   <button
@@ -272,7 +337,9 @@ const Register = () => {
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.confirmPassword.message}
+                  </p>
                 )}
               </div>
 
@@ -297,7 +364,7 @@ const Register = () => {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                Already have an account?{' '}
+                Already have an account?{" "}
                 <Link
                   to="/login"
                   className="font-medium text-primary-button hover:text-primary-dark"
@@ -313,4 +380,4 @@ const Register = () => {
   );
 };
 
-export default Register; 
+export default Register;

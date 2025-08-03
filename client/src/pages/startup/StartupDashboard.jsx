@@ -1,75 +1,97 @@
-import React from 'react';
-import { Helmet } from 'react-helmet-async';
-import { useAuth } from '../../hooks/useAuth';
-import { 
-  Building, 
-  Users, 
-  Briefcase, 
-  DollarSign, 
+import React, { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
+import { useAuth } from "../../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import api from "../../services/api";
+import {
+  Building,
+  Users,
+  Briefcase,
+  DollarSign,
   TrendingUp,
   Plus,
-  Eye
-} from 'lucide-react';
+  Eye,
+} from "lucide-react";
 
 const StartupDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - replace with real API calls
-  const stats = [
-    { label: 'Active Tasks', value: '8', icon: Briefcase, color: 'text-blue-600' },
-    { label: 'Students Hired', value: '12', icon: Users, color: 'text-green-600' },
-    { label: 'Total Spent', value: '$5,240', icon: DollarSign, color: 'text-green-600' },
-    { label: 'Avg. Rating', value: '4.8', icon: TrendingUp, color: 'text-purple-600' }
-  ];
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
 
-  const recentTasks = [
-    {
-      id: 1,
-      title: 'Frontend Development for E-commerce',
-      student: 'John Doe',
-      status: 'in-progress',
-      progress: 75,
-      deadline: '2024-01-15',
-      budget: '$500'
-    },
-    {
-      id: 2,
-      title: 'Mobile App UI Design',
-      student: 'Jane Smith',
-      status: 'completed',
-      progress: 100,
-      deadline: '2024-01-10',
-      budget: '$300'
-    },
-    {
-      id: 3,
-      title: 'Data Analysis Project',
-      student: 'Mike Johnson',
-      status: 'review',
-      progress: 90,
-      deadline: '2024-01-20',
-      budget: '$400'
+  const fetchDashboard = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/startup/dashboard");
+      setProfile(res.data.startup);
+      setTasks(res.data.tasks);
+    } catch {
+      setProfile(null);
+      setTasks([]);
     }
+    setLoading(false);
+  };
+
+  const stats = [
+    {
+      label: "Active Tasks",
+      value: (tasks || []).filter(
+        (t) => t.status === "open" || t.status === "in-progress"
+      ).length,
+      icon: Briefcase,
+      color: "text-blue-600",
+    },
+    {
+      label: "Students Hired",
+      value: (tasks || []).filter((t) => t.assignedStudent).length,
+      icon: Users,
+      color: "text-green-600",
+    },
+    {
+      label: "Total Spent",
+      value: `$${(tasks || []).reduce(
+        (sum, t) => sum + (t.budget?.max || 0),
+        0
+      )}`,
+      icon: DollarSign,
+      color: "text-green-600",
+    },
+    {
+      label: "Avg. Rating",
+      value: profile?.averageRating || "N/A",
+      icon: TrendingUp,
+      color: "text-purple-600",
+    },
   ];
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'in-progress':
-        return 'bg-blue-100 text-blue-800';
-      case 'review':
-        return 'bg-yellow-100 text-yellow-800';
+      case "completed":
+        return "bg-green-100 text-green-800";
+      case "in-progress":
+        return "bg-blue-100 text-blue-800";
+      case "review":
+        return "bg-yellow-100 text-yellow-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <>
       <Helmet>
         <title>Startup Dashboard - Hubinity</title>
-        <meta name="description" content="Startup dashboard for Hubinity platform" />
+        <meta
+          name="description"
+          content="Startup dashboard for Hubinity platform"
+        />
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">
@@ -79,18 +101,24 @@ const StartupDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-garamond font-bold text-primary-dark">
-                  Welcome back, {user?.firstName}!
+                  Welcome back, {user?.firstName || profile?.companyName}!
                 </h1>
                 <p className="text-gray-600 mt-1">
                   Here's what's happening with your startup
                 </p>
               </div>
               <div className="flex space-x-3">
-                <button className="btn-secondary">
+                <button
+                  className="btn-secondary"
+                  onClick={() => navigate("/startup/browse-students")}
+                >
                   <Users className="w-4 h-4 mr-2" />
                   Browse Students
                 </button>
-                <button className="btn-primary">
+                <button
+                  className="btn-primary"
+                  onClick={() => navigate("/startup/post-task")}
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Post New Task
                 </button>
@@ -109,8 +137,12 @@ const StartupDashboard = () => {
                     <stat.icon className="w-6 h-6" />
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                    <p className="text-2xl font-bold text-primary-dark">{stat.value}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      {stat.label}
+                    </p>
+                    <p className="text-2xl font-bold text-primary-dark">
+                      {stat.value}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -125,41 +157,49 @@ const StartupDashboard = () => {
                   <h2 className="text-xl font-semibold text-primary-dark">
                     Recent Tasks
                   </h2>
-                  <button className="btn-ghost text-sm">
+                  <button
+                    className="btn-ghost text-sm"
+                    onClick={() => navigate("/startup/tasks")}
+                  >
                     View All
                   </button>
                 </div>
-                
                 <div className="space-y-4">
-                  {recentTasks.map((task) => (
-                    <div key={task.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-soft transition-shadow">
+                  {(tasks || []).slice(0, 5).map((task) => (
+                    <div
+                      key={task._id}
+                      className="border border-gray-200 rounded-xl p-4 hover:shadow-soft transition-shadow"
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h3 className="font-semibold text-primary-dark mb-1">
                             {task.title}
                           </h3>
                           <p className="text-sm text-gray-600 mb-2">
-                            {task.student} • {task.budget}
+                            {task.assignedStudent
+                              ? `Assigned to ${
+                                  task.assignedStudent.firstName || ""
+                                } ${task.assignedStudent.lastName || ""}`
+                              : "Unassigned"}{" "}
+                            • ${task.budget?.max}
                           </p>
                           <div className="flex items-center space-x-4 mb-3">
-                            <span className={`badge ${getStatusColor(task.status)}`}>
-                              {task.status.replace('-', ' ')}
+                            <span
+                              className={`badge ${getStatusColor(task.status)}`}
+                            >
+                              {task.status.replace("-", " ")}
                             </span>
                             <span className="text-sm text-gray-500">
-                              Due: {new Date(task.deadline).toLocaleDateString()}
+                              Due:{" "}
+                              {new Date(task.deadline).toLocaleDateString()}
                             </span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-primary-button h-2 rounded-full transition-all"
-                              style={{ width: `${task.progress}%` }}
-                            />
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {task.progress}% complete
-                          </p>
+                          {/* Progress bar and completion % can be added if tracked */}
                         </div>
-                        <button className="btn-ghost p-2">
+                        <button
+                          className="btn-ghost p-2"
+                          onClick={() => navigate(`/startup/tasks/${task._id}`)}
+                        >
                           <Eye className="w-4 h-4" />
                         </button>
                       </div>
@@ -177,19 +217,24 @@ const StartupDashboard = () => {
                   Quick Actions
                 </h2>
                 <div className="space-y-3">
-                  <button className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors">
+                  <button
+                    className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                    onClick={() => navigate("/startup/post-task")}
+                  >
                     <Briefcase className="w-5 h-5 text-primary-button mr-3" />
                     <span>Post New Task</span>
                   </button>
-                  <button className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors">
+                  <button
+                    className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                    onClick={() => navigate("/startup/browse-students")}
+                  >
                     <Users className="w-5 h-5 text-primary-button mr-3" />
                     <span>Browse Students</span>
                   </button>
-                  <button className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors">
-                    <TrendingUp className="w-5 h-5 text-primary-button mr-3" />
-                    <span>View Analytics</span>
-                  </button>
-                  <button className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors">
+                  <button
+                    className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                    onClick={() => navigate("/startup/profile")}
+                  >
                     <Building className="w-5 h-5 text-primary-button mr-3" />
                     <span>Update Profile</span>
                   </button>
@@ -205,21 +250,35 @@ const StartupDashboard = () => {
                   <div className="flex items-center p-3 bg-blue-50 rounded-lg">
                     <Building className="w-5 h-5 text-blue-600 mr-3" />
                     <div>
-                      <p className="font-medium text-primary-dark">TechStart Inc.</p>
-                      <p className="text-sm text-gray-600">Early-stage Startup</p>
+                      <p className="font-medium text-primary-dark">
+                        {profile?.companyName}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {profile?.tier ? profile.tier.replace("-", " ") : ""}{" "}
+                        Startup
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center p-3 bg-green-50 rounded-lg">
                     <Users className="w-5 h-5 text-green-600 mr-3" />
                     <div>
-                      <p className="font-medium text-primary-dark">12 Students</p>
+                      <p className="font-medium text-primary-dark">
+                        {(tasks || []).filter((t) => t.assignedStudent).length}{" "}
+                        Students
+                      </p>
                       <p className="text-sm text-gray-600">Currently working</p>
                     </div>
                   </div>
                   <div className="flex items-center p-3 bg-purple-50 rounded-lg">
                     <DollarSign className="w-5 h-5 text-purple-600 mr-3" />
                     <div>
-                      <p className="font-medium text-primary-dark">$5,240</p>
+                      <p className="font-medium text-primary-dark">
+                        $
+                        {(tasks || []).reduce(
+                          (sum, t) => sum + (t.budget?.max || 0),
+                          0
+                        )}
+                      </p>
                       <p className="text-sm text-gray-600">Total spent</p>
                     </div>
                   </div>
@@ -233,4 +292,6 @@ const StartupDashboard = () => {
   );
 };
 
-export default StartupDashboard; 
+// ...existing code...
+
+export default StartupDashboard;

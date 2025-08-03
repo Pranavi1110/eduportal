@@ -7,6 +7,18 @@ const Task = require("../models/Task");
 const Student = require("../models/Student");
 const Certificate = require("../models/Certificate");
 
+// Update startup profile
+router.put("/profile", verifyJWT, async (req, res) => {
+  try {
+    const updated = await Startup.findByIdAndUpdate(req.user.id, req.body, {
+      new: true,
+    });
+    res.json(updated);
+  } catch (e) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // Get startup dashboard data (tasks, notifications, profile)
 router.get("/dashboard", verifyJWT, async (req, res) => {
   try {
@@ -26,7 +38,8 @@ router.post("/tasks", verifyJWT, async (req, res) => {
     await task.save();
     res.status(201).json(task);
   } catch (err) {
-    res.status(500).json({ error: "Server error" });
+    console.error("Error creating task:", err);
+    res.status(500).json({ error: "Server error", details: err.message });
   }
 });
 
