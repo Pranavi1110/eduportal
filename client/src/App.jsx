@@ -1,25 +1,30 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
-import { HelmetProvider } from 'react-helmet-async';
-import { QueryClient, QueryClientProvider } from 'react-query';
-import { useAuth } from './hooks/useAuth';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import { HelmetProvider } from "react-helmet-async";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { useAuth } from "./hooks/useAuth";
 
 // Layout components
-import Navbar from './components/layout/Navbar';
-import Footer from './components/layout/Footer';
+import Navbar from "./components/layout/Navbar";
+import Footer from "./components/layout/Footer";
 
 // Pages
-import Home from './pages/Home';
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-import StudentDashboard from './pages/student/StudentDashboard';
-import StartupDashboard from './pages/startup/StartupDashboard';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import Profile from './pages/Profile';
-import Tasks from './pages/Tasks';
-import Messages from './pages/Messages';
-import Certificates from './pages/Certificates';
+import Home from "./pages/Home";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import StudentDashboard from "./pages/student/StudentDashboard";
+import StartupDashboard from "./pages/startup/StartupDashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import Profile from "./pages/Profile";
+import Tasks from "./pages/Tasks";
+import Messages from "./pages/Messages";
+import Certificates from "./pages/Certificates";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -47,7 +52,10 @@ const ProtectedRoute = ({ children, allowedUserTypes = [] }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedUserTypes.length > 0 && !allowedUserTypes.includes(user?.userType)) {
+  if (
+    allowedUserTypes.length > 0 &&
+    !allowedUserTypes.includes(user?.userType)
+  ) {
     return <Navigate to="/" replace />;
   }
 
@@ -75,16 +83,22 @@ const PublicRoute = ({ children }) => {
 
 // Dashboard Route Component
 const DashboardRoute = () => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-button"></div>
+      </div>
+    );
+  }
 
   switch (user.userType) {
-    case 'student':
+    case "student":
       return <StudentDashboard />;
-    case 'startup':
+    case "startup":
       return <StartupDashboard />;
-    case 'admin':
+    case "admin":
       return <AdminDashboard />;
     default:
       return <Navigate to="/" replace />;
@@ -102,60 +116,87 @@ const App = () => {
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Home />} />
-                <Route path="/login" element={
-                  <PublicRoute>
-                    <Login />
-                  </PublicRoute>
-                } />
-                <Route path="/register" element={
-                  <PublicRoute>
-                    <Register />
-                  </PublicRoute>
-                } />
+                <Route
+                  path="/login"
+                  element={
+                    <PublicRoute>
+                      <Login />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/register"
+                  element={
+                    <PublicRoute>
+                      <Register />
+                    </PublicRoute>
+                  }
+                />
 
                 {/* Protected Routes */}
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <DashboardRoute />
-                  </ProtectedRoute>
-                } />
-                <Route path="/profile" element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                } />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardRoute />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="/tasks" element={<Tasks />} />
-                <Route path="/messages" element={
-                  <ProtectedRoute>
-                    <Messages />
-                  </ProtectedRoute>
-                } />
-                <Route path="/certificates" element={
-                  <ProtectedRoute>
-                    <Certificates />
-                  </ProtectedRoute>
-                } />
+                <Route
+                  path="/messages"
+                  element={
+                    <ProtectedRoute>
+                      <Messages />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/certificates"
+                  element={
+                    <ProtectedRoute>
+                      <Certificates />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Student Routes */}
-                <Route path="/student/dashboard" element={
-                  <ProtectedRoute allowedUserTypes={['student']}>
-                    <StudentDashboard />
-                  </ProtectedRoute>
-                } />
+                <Route
+                  path="/student/dashboard"
+                  element={
+                    <ProtectedRoute allowedUserTypes={["student"]}>
+                      <StudentDashboard />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Startup Routes */}
-                <Route path="/startup/dashboard" element={
-                  <ProtectedRoute allowedUserTypes={['startup']}>
-                    <StartupDashboard />
-                  </ProtectedRoute>
-                } />
+                <Route
+                  path="/startup/dashboard"
+                  element={
+                    <ProtectedRoute allowedUserTypes={["startup"]}>
+                      <StartupDashboard />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Admin Routes */}
-                <Route path="/admin/dashboard" element={
-                  <ProtectedRoute allowedUserTypes={['admin']}>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                } />
+                <Route
+                  path="/admin/dashboard"
+                  element={
+                    <ProtectedRoute allowedUserTypes={["admin"]}>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Catch all route */}
                 <Route path="*" element={<Navigate to="/" replace />} />
@@ -168,8 +209,8 @@ const App = () => {
             toastOptions={{
               duration: 4000,
               style: {
-                background: '#363636',
-                color: '#fff',
+                background: "#363636",
+                color: "#fff",
               },
             }}
           />

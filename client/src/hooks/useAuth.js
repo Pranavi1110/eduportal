@@ -1,103 +1,84 @@
-import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { authAPI } from '../services/api';
-import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import { useMutation, useQueryClient } from "react-query";
+import { registerUser, loginUser } from "../routes/auth";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useState, useEffect } from "react";
 
 export const useAuth = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Check authentication status
-  const { data: authData, isLoading: authLoading, error: authError } = useQuery(
-    'auth',
-    authAPI.checkAuth,
-    {
-      refetchOnWindowFocus: false,
-      retry: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+  // Auth state from localStorage
+  const [authData, setAuthData] = useState(() => {
+    const stored = localStorage.getItem("auth");
+    return stored ? JSON.parse(stored) : null;
+  });
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState(null);
+
+  // Keep localStorage in sync with authData
+  useEffect(() => {
+    if (authData) {
+      localStorage.setItem("auth", JSON.stringify(authData));
+    } else {
+      localStorage.removeItem("auth");
     }
-  );
+  }, [authData]);
 
   // Login mutation
-  const loginMutation = useMutation(
-    (credentials) => authAPI.login(credentials),
-    {
-      onSuccess: (data) => {
-        queryClient.setQueryData('auth', data);
-        toast.success('Login successful!');
-        navigate('/dashboard');
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || 'Login failed');
-      }
-    }
-  );
+  const loginMutation = useMutation((credentials) => loginUser(credentials), {
+    onSuccess: (data) => {
+      setAuthData(data);
+      queryClient.setQueryData("auth", data);
+      toast.success("Login successful!");
+      console.log(authData);
+      setTimeout(() => navigate("/dashboard"), 1000);
+    },
+    onError: (error) => {
+      setAuthError(error);
+      toast.error(error.message || "Login failed");
+    },
+  });
 
   // Register mutation
-  const registerMutation = useMutation(
-    (userData) => authAPI.register(userData),
-    {
-      onSuccess: (data) => {
-        queryClient.setQueryData('auth', data);
-        toast.success('Registration successful!');
-        navigate('/dashboard');
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || 'Registration failed');
-      }
-    }
-  );
+  const registerMutation = useMutation((userData) => registerUser(userData), {
+    onSuccess: (data) => {
+      setAuthData(data);
+      queryClient.setQueryData("auth", data);
+      toast.success("Registration successful!");
+      navigate("/dashboard");
+    },
+    onError: (error) => {
+      setAuthError(error);
+      toast.error(error.message || "Registration failed");
+    },
+  });
 
-  // Logout mutation
-  const logoutMutation = useMutation(
-    () => authAPI.logout(),
-    {
-      onSuccess: () => {
-        queryClient.setQueryData('auth', { success: true, authenticated: false });
-        queryClient.clear();
-        toast.success('Logged out successfully');
-        navigate('/');
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || 'Logout failed');
-      }
-    }
-  );
+  // Logout mutation stub
+  const logoutMutation = {
+    mutate: () => {
+      toast("Logout not implemented");
+    },
+  };
 
-  // Update profile mutation
-  const updateProfileMutation = useMutation(
-    (data) => authAPI.updateProfile(data),
-    {
-      onSuccess: (data) => {
-        queryClient.setQueryData('auth', {
-          ...queryClient.getQueryData('auth'),
-          user: data.data
-        });
-        toast.success('Profile updated successfully');
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || 'Profile update failed');
-      }
-    }
-  );
+  // Update profile mutation stub
+  const updateProfileMutation = {
+    mutate: () => {
+      toast("Update profile not implemented");
+    },
+  };
 
-  // Change password mutation
-  const changePasswordMutation = useMutation(
-    (data) => authAPI.changePassword(data),
-    {
-      onSuccess: () => {
-        toast.success('Password changed successfully');
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || 'Password change failed');
-      }
-    }
-  );
+  // Change password mutation stub
+  const changePasswordMutation = {
+    mutate: () => {
+      toast("Change password not implemented");
+    },
+  };
 
   return {
     // Auth state
     user: authData?.user || null,
-    isAuthenticated: authData?.authenticated || false,
+    isAuthenticated: !!authData?.token || !!authData?.user,
     isLoading: authLoading,
     error: authError,
 
@@ -116,9 +97,9 @@ export const useAuth = () => {
     isChangePasswordLoading: changePasswordMutation.isLoading,
 
     // Helper methods
-    isStudent: () => authData?.user?.userType === 'student',
-    isStartup: () => authData?.user?.userType === 'startup',
-    isAdmin: () => authData?.user?.userType === 'admin',
+    isStudent: () => authData?.user?.userType === "student",
+    isStartup: () => authData?.user?.userType === "startup",
+    isAdmin: () => authData?.user?.userType === "admin",
     isVerified: () => authData?.user?.isVerified || false,
   };
-}; 
+};
