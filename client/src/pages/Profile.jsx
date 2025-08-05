@@ -41,17 +41,17 @@ const Profile = () => {
 
   // Sync form state with fetched student data
   useEffect(() => {
-    if (data?.student) {
+    if (data?.user) {
       setForm({
-        bio: data.student.bio || "",
-        projects: data.student.projects || [],
-        experience: data.student.experience || [],
-        skills: data.student.skills || [],
-        college: data.student.college || "",
-        collegeEmail: data.student.collegeEmail || "",
+        bio: data.user.bio || "",
+        projects: data.user.projects || [],
+        experience: data.user.experience || [],
+        skills: data.user.skills || [],
+        college: data.user.college || "",
+        collegeEmail: data.user.collegeEmail || "",
         // completedTasks, totalEarnings, rating removed
       });
-    } else if (data && !data.student) {
+    } else if (data && !data.user) {
       setForm({
         bio: "",
         projects: [],
@@ -152,7 +152,7 @@ const Profile = () => {
       ),
       projects: (form.projects || []).filter((proj) => proj && proj.title),
     };
-    if (data?.student) {
+    if (data?.user) {
       updateMutation.mutate(filteredForm);
     } else {
       addMutation.mutate(filteredForm);
@@ -165,7 +165,7 @@ const Profile = () => {
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow mt-8">
       <h2 className="text-2xl font-bold mb-4">
-        {data && data.student == null ? "Add Profile" : "Edit Profile"}
+        {data && data.user == null ? "Add Profile" : "Edit Profile"}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* College */}

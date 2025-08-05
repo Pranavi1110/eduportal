@@ -42,8 +42,9 @@ const PostTask = () => {
     setStudents([]);
     setSelectedStudent("");
     try {
-      const res = await api.get("/startup/students", {
-        params: { skills: form.skills },
+      // Fetch users from User model where userType is student and skills match
+      const res = await api.get("/users", {
+        params: { userType: "student", skills: form.skills },
       });
       setStudents(res.data);
     } catch {
@@ -156,47 +157,64 @@ const PostTask = () => {
               Select Student to Assign
             </label>
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {students.map((s) => (
-                <label
-                  key={s._id}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <input
-                    type="radio"
-                    name="selectedStudent"
-                    value={s._id}
-                    checked={selectedStudent === s._id}
-                    onChange={() => setSelectedStudent(s._id)}
-                    required
-                  />
-                  <span className="font-semibold">
-                    {s.firstName} {s.lastName}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    Skills: {s.skills?.map((sk) => sk.name).join(", ")}
-                  </span>
-                </label>
-              ))}
+              {students
+                .filter(
+                  (s) =>
+                    s.userType === "student" &&
+                    (s.firstName || s.lastName || s.username || s.name)
+                )
+                .map((s) => (
+                  <label
+                    key={s._id}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <input
+                      type="radio"
+                      name="selectedStudent"
+                      value={s._id}
+                      checked={selectedStudent === s._id}
+                      onChange={() => setSelectedStudent(s._id)}
+                      required
+                    />
+                    <span className="font-semibold text-blue-700">
+                      {[s.firstName, s.lastName].filter(Boolean).join(" ") ||
+                        s.username ||
+                        s.name}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      Username:{" "}
+                      <span className="text-gray-700 font-bold">
+                        {s.username ||
+                          s.name ||
+                          [s.firstName, s.lastName].filter(Boolean).join(" ")}
+                      </span>
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      Skills:{" "}
+                      {Array.isArray(s.skills) && s.skills.length > 0 ? (
+                        s.skills
+                          .flatMap((sk) =>
+                            sk.name
+                              ? sk.name.split(",").map((skill) => skill.trim())
+                              : []
+                          )
+                          .map((skill, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded mr-1"
+                            >
+                              {skill}
+                            </span>
+                          ))
+                      ) : (
+                        <span className="text-gray-400">No skills listed</span>
+                      )}
+                    </span>
+                  </label>
+                ))}
             </div>
           </div>
         )}
-        <div>
-          <label className="block font-medium">Difficulty</label>
-          <select
-            name="difficulty"
-            value={form.difficulty}
-            onChange={handleChange}
-            className="input-field"
-            required
-          >
-            <option value="">Select</option>
-            {difficulties.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-        </div>
         <div>
           <label className="block font-medium">Estimated Hours</label>
           <input
@@ -209,32 +227,6 @@ const PostTask = () => {
             min="1"
           />
         </div>
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <label className="block font-medium">Budget Min</label>
-            <input
-              name="budgetMin"
-              type="number"
-              value={form.budgetMin}
-              onChange={handleChange}
-              className="input-field"
-              required
-              min="0"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="block font-medium">Budget Max</label>
-            <input
-              name="budgetMax"
-              type="number"
-              value={form.budgetMax}
-              onChange={handleChange}
-              className="input-field"
-              required
-              min="0"
-            />
-          </div>
-        </div>
         <div>
           <label className="block font-medium">Deadline</label>
           <input
@@ -246,21 +238,7 @@ const PostTask = () => {
             required
           />
         </div>
-        <div>
-          <label className="block font-medium">Priority</label>
-          <select
-            name="priority"
-            value={form.priority}
-            onChange={handleChange}
-            className="input-field"
-          >
-            {priorities.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-        </div>
+
         <button type="submit" className="btn-primary" disabled={loading}>
           {loading ? "Posting..." : "Post Task"}
         </button>

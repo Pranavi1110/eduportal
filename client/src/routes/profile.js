@@ -2,8 +2,10 @@
 const API_BASE = "http://localhost:5000/api/student";
 
 // Fetch student profile by userId (no auth required)
-export async function fetchStudentProfile(userId) {
-  const res = await fetch(`${API_BASE}/dashboard?userId=${userId}`);
+export async function fetchStudentProfile(token) {
+  const res = await fetch(`${API_BASE}/dashboard`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   if (!res.ok) throw new Error("Failed to fetch profile");
   return res.json();
 }

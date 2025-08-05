@@ -42,6 +42,18 @@ router.post("/send", verifyJWT, async (req, res) => {
       task: task || undefined,
     });
     await message.save();
+
+    // Create notification for receiver
+    const Notification = require("../models/Notification");
+    const notif = new Notification({
+      recipient: receiver,
+      sender: req.user.id,
+      type: "message",
+      message: `New message from ${req.user.id}`,
+      link: `/chat/${req.user.id}`,
+    });
+    await notif.save();
+
     res.status(201).json(message);
   } catch (err) {
     res.status(500).json({ error: "Server error", details: err.message });

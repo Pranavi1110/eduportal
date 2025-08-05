@@ -1,27 +1,64 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import api from "../services/api";
+import toast from "react-hot-toast";
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submission, setSubmission] = useState({});
+  const [submitting, setSubmitting] = useState({});
+
+  // Handle input change for link submission
+  const handleInput = (taskId, value) => {
+    setSubmission((prev) => ({
+      ...prev,
+      [taskId]: value,
+    }));
+  };
+
+  // Handle link submission
+  const handleSubmit = async (e, taskId) => {
+    e.preventDefault();
+    if (!submission[taskId]) return;
+    setSubmitting((prev) => ({ ...prev, [taskId]: true }));
+    try {
+      await api.post(`/student/tasks/${taskId}/submit-link`, {
+        link: submission[taskId],
+      });
+      toast.success("Link submitted successfully!");
+      setTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t._id === taskId ? { ...t, status: "submitted" } : t
+        )
+      );
+      setSubmission((prev) => ({ ...prev, [taskId]: "" }));
+    } catch (err) {
+      toast.error("Failed to submit link.");
+      console.error(err);
+    }
+    setSubmitting((prev) => ({ ...prev, [taskId]: false }));
+  };
 
   useEffect(() => {
     const fetchTasks = async () => {
       setLoading(true);
       try {
-        const res = await api.get("/startup/dashboard");
+        const res = await api.get(`/student/dashboard`);
+        console.log("Tasks response from backend:", res.data);
         setTasks(res.data.tasks || []);
-      } catch {
-        setTasks([]);
+      } catch (e) {
+        console.error("Error fetching tasks:", e);
       }
+
       setLoading(false);
     };
+
     fetchTasks();
   }, []);
 
   return (
-    <>
+    <div>
       <Helmet>
         <title>Tasks - Hubinity</title>
         <meta name="description" content="Browse and manage tasks" />
@@ -42,12 +79,16 @@ const Tasks = () => {
                 <div className="flex justify-between items-center mb-2">
                   <div className="font-semibold text-lg">{task.title}</div>
                   <span className="text-xs px-2 py-1 rounded bg-gray-100">
-                    {task.status}
+                    {task.status === "open"
+                      ? "Open"
+                      : task.status === "submitted"
+                      ? "Submitted"
+                      : task.status}
                   </span>
                 </div>
                 <div className="text-gray-600 mb-1">{task.description}</div>
                 <div className="text-sm text-gray-500 mb-1">
-                  Category: {task.category} | Difficulty: {task.difficulty}
+                  Category: {task.category}
                 </div>
                 <div className="text-sm text-gray-500 mb-1">
                   Skills: {task.skills?.join(", ")}
@@ -61,12 +102,40 @@ const Tasks = () => {
                     {task.assignedStudent.lastName}
                   </div>
                 )}
+
+                {/* Show submit link form only if status is open */}
+                {task.status === "open" ? (
+                  <form
+                    className="mt-4 flex gap-2"
+                    onSubmit={(e) => handleSubmit(e, task._id)}
+                  >
+                    <input
+                      type="url"
+                      placeholder="Submit your work link"
+                      className="border rounded px-2 py-1 flex-1"
+                      value={submission[task._id] || ""}
+                      onChange={(e) => handleInput(task._id, e.target.value)}
+                      required
+                    />
+                    <button
+                      type="submit"
+                      className="bg-primary text-black px-4 py-1 rounded"
+                      disabled={submitting[task._id]}
+                    >
+                      {submitting[task._id] ? "Submitting..." : "Submit"}
+                    </button>
+                  </form>
+                ) : (
+                  <div className="mt-4 text-green-600 font-semibold">
+                    Link Submitted
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 };
 

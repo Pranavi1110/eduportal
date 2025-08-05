@@ -23,7 +23,10 @@ router.put("/profile", verifyJWT, async (req, res) => {
 router.get("/dashboard", verifyJWT, async (req, res) => {
   try {
     const startup = await Startup.findById(req.user.id);
-    const tasks = await Task.find({ startup: req.user.id });
+    const tasks = await Task.find({ startup: req.user.id }).populate(
+      "assignedStudent",
+      "firstName lastName email username"
+    );
     // TODO: Fetch notifications
     res.json({ startup, tasks });
   } catch (err) {
@@ -36,6 +39,20 @@ router.post("/tasks", verifyJWT, async (req, res) => {
   try {
     const task = new Task({ ...req.body, startup: req.user.id });
     await task.save();
+
+    // If assignedStudent exists, create notification for student
+    if (task.assignedStudent) {
+      const Notification = require("../models/Notification");
+      const notif = new Notification({
+        recipient: task.assignedStudent,
+        sender: req.user.id,
+        type: "task-assigned",
+        message: `You have been assigned a new task: ${task.title}`,
+        link: `/tasks/${task._id}`,
+      });
+      await notif.save();
+    }
+
     res.status(201).json(task);
   } catch (err) {
     console.error("Error creating task:", err);
@@ -65,9 +82,16 @@ router.get("/students", verifyJWT, async (req, res) => {
 router.post("/tasks/:taskId/assign", verifyJWT, async (req, res) => {
   try {
     const { studentId } = req.body;
+    // Find the student and get their userId
+    const Student = require("../models/Student");
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+    // Use the userId (User _id) for assignedStudent
     const task = await Task.findByIdAndUpdate(
       req.params.taskId,
-      { assignedStudent: studentId, status: "assigned" },
+      { assignedStudent: student.userId, status: "assigned" },
       { new: true }
     );
     res.json(task);
@@ -96,7 +120,7 @@ router.post("/tasks/:taskId/approve", verifyJWT, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
- // or the correct path to Startup model
+// or the correct path to Startup model
 router.get("/all", async (req, res) => {
   try {
     // Pull startup users and select only needed fields
