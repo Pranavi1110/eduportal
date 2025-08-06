@@ -35,6 +35,7 @@ router.post("/send", verifyJWT, async (req, res) => {
     const { receiver, content, task } = req.body;
     if (!receiver || !content)
       return res.status(400).json({ error: "Receiver and content required" });
+
     const message = new Message({
       sender: req.user.id,
       receiver,
@@ -43,30 +44,44 @@ router.post("/send", verifyJWT, async (req, res) => {
     });
     await message.save();
 
-    // Create notification for receiver
     const Notification = require("../models/Notification");
+
+    // 🔁 Get sender's display name
+    const senderUser = await User.findById(req.user.id);
+    let senderName = "";
+    if (senderUser) {
+      if (senderUser.firstName || senderUser.lastName) {
+        senderName = `${senderUser.firstName || ""} ${senderUser.lastName || ""}`.trim();
+      } else if (senderUser.username) {
+        senderName = senderUser.username;
+      } else if (senderUser.email) {
+        senderName = senderUser.email;
+      } else {
+        senderName = req.user.id;
+      }
+    }
+
+    // ✅ Create notification with name instead of ObjectId
+    const notif = new Notification({
+      recipient: receiver,
+      sender: req.user.id,
+      type: "message",
+      message: `New message from ${senderName}`,
+      link: `/chat/${req.user.id}`,
+    });
+    await notif.save();
+
+    // ✅ If startup, also send a startup notification
     const receiverUser = await User.findById(receiver);
-    if (receiverUser) {
-      const notif = new Notification({
+    if (receiverUser?.userType === "startup") {
+      const startupNotif = new Notification({
         recipient: receiver,
         sender: req.user.id,
         type: "message",
-        message: `New message from ${req.user.id}`,
+        message: `New message from ${senderName}`,
         link: `/chat/${req.user.id}`,
       });
-      await notif.save();
-
-      // If receiver is a startup, also create notification for startup dashboard
-      if (receiverUser.userType === "startup") {
-        const startupNotif = new Notification({
-          recipient: receiver,
-          sender: req.user.id,
-          type: "message",
-          message: `New message from ${req.user.id}`,
-          link: `/chat/${req.user.id}`,
-        });
-        await startupNotif.save();
-      }
+      await startupNotif.save();
     }
 
     res.status(201).json(message);
@@ -74,6 +89,7 @@ router.post("/send", verifyJWT, async (req, res) => {
     res.status(500).json({ error: "Server error", details: err.message });
   }
 });
+
 
 // Get all messages between logged-in user and another user
 router.get("/:userId", verifyJWT, async (req, res) => {

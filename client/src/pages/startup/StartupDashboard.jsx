@@ -165,11 +165,7 @@ const StartupDashboard = () => {
                                 <div className="text-xs text-gray-500">
                                   {new Date(notif.createdAt).toLocaleString()}
                                 </div>
-                                {notif.senderName && (
-                                  <div className="text-xs text-gray-700">
-                                    From: {notif.senderName}
-                                  </div>
-                                )}
+                                
                                 {notif.link && (
                                   <button
                                     onClick={async () => {

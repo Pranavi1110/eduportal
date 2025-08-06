@@ -30,16 +30,16 @@ router.get("/notifications", verifyJWT, async (req, res) => {
       recipient: req.user.id,
     })
       .sort({ createdAt: -1 })
-      .populate("sender", "firstName lastName");
+      .populate("sender", "firstName lastName companyName username email");
 
-    // Add senderName for all notifications
     const notificationsWithName = notifications.map((notif) => {
       let senderName = "";
+
       if (notif.sender) {
-        if (notif.sender.firstName || notif.sender.lastName) {
-          senderName = `${notif.sender.firstName || ""} ${
-            notif.sender.lastName || ""
-          }`.trim();
+        if (notif.sender.companyName) {
+          senderName = notif.sender.companyName;
+        } else if (notif.sender.firstName || notif.sender.lastName) {
+          senderName = `${notif.sender.firstName || ""} ${notif.sender.lastName || ""}`.trim();
         } else if (notif.sender.username) {
           senderName = notif.sender.username;
         } else if (notif.sender.email) {
@@ -63,6 +63,7 @@ router.get("/notifications", verifyJWT, async (req, res) => {
 
     res.json(notificationsWithName);
   } catch (err) {
+    console.error("[ERROR] Failed to fetch student notifications:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
