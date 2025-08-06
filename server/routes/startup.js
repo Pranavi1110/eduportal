@@ -48,7 +48,7 @@ router.post("/tasks", verifyJWT, async (req, res) => {
         sender: req.user.id,
         type: "task-assigned",
         message: `You have been assigned a new task: ${task.title}`,
-        link: `/tasks/${task._id}`,
+        link: "/tasks",
       });
       await notif.save();
     }

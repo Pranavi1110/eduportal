@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { fetchStartupNotifications, markStartupNotificationRead } from "../../routes/startupNotifications";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -14,14 +15,24 @@ import {
 } from "lucide-react";
 
 const StartupDashboard = () => {
-  const { user } = useAuth();
+  const { user, authData } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     fetchDashboard();
+    // Fetch notifications for startup
+    const fetchNotifications = async () => {
+      const token = authData?.token;
+      if (!token) return;
+      const notifRes = await fetchStartupNotifications(token);
+      setNotifications(notifRes);
+    };
+    fetchNotifications();
   }, []);
 
   const fetchDashboard = async () => {
@@ -107,7 +118,70 @@ const StartupDashboard = () => {
                   Here's what's happening with your startup
                 </p>
               </div>
-              <div className="flex space-x-3">
+              <div className="flex space-x-3 items-center">
+                {/* Notification Bell */}
+                <div className="relative">
+                  <button
+                    title="Notifications"
+                    className="relative text-xl"
+                    onClick={() => setShowNotifications((prev) => !prev)}
+                  >
+                    🔔
+                    {notifications.filter((n) => !n.read).length > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                        {notifications.filter((n) => !n.read).length}
+                      </span>
+                    )}
+                  </button>
+                  {showNotifications && (
+                    <div className="absolute top-10 right-0 bg-white border rounded shadow-lg w-80 z-50 p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-lg font-semibold">Notifications</h3>
+                        <button
+                          className="text-gray-500 hover:text-gray-800 text-xl font-bold px-2"
+                          onClick={() => setShowNotifications(false)}
+                          title="Close"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                      {notifications.filter((n) => !n.read).length === 0 ? (
+                        <div className="text-gray-500">No notifications.</div>
+                      ) : (
+                        <ul className="space-y-2 max-h-64 overflow-y-auto">
+                          {notifications
+                            .filter((notif) => !notif.read)
+                            .map((notif, idx) => (
+                              <li
+                                key={notif._id || idx}
+                                className="p-3 rounded shadow border bg-yellow-50"
+                              >
+                                <div className="font-medium">{notif.message}</div>
+                                <div className="text-xs text-gray-500">
+                                  {new Date(notif.createdAt).toLocaleString()}
+                                </div>
+                                {notif.link && (
+                                  <button
+                                    onClick={async () => {
+                                      if (!notif.read) {
+                                        await markStartupNotificationRead(authData?.token, notif._id);
+                                        setNotifications((prev) => prev.filter((n) => n._id !== notif._id));
+                                      }
+                                      window.location.href = notif.link;
+                                    }}
+                                    className="text-blue-600 underline text-sm"
+                                  >
+                                    View
+                                  </button>
+                                )}
+                              </li>
+                            ))}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {/* ...existing buttons... */}
                 <button
                   className="btn-secondary"
                   onClick={() => navigate("/startup/browse-students")}

@@ -14,12 +14,14 @@ const Profile = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const userId = user?._id || user?.id;
-
+  const auth = JSON.parse(localStorage.getItem("auth"));
+  const token = user?.token || auth?.token;
   // Fetch profile for this userId
+  console.log("JWT token being sent:", token);
   const { data, isLoading } = useQuery(
-    ["student-profile", userId],
-    () => fetchStudentProfile(userId),
-    { enabled: !!userId }
+    ["student-profile", token],
+    () => fetchStudentProfile(token),
+    { enabled: !!token }
   );
 
   // Editable state

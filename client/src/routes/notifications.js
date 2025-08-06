@@ -1,3 +1,18 @@
+// Mark notification as read
+export async function markNotificationRead(token, notifId) {
+  if (!token || !notifId) return;
+  try {
+    await api.patch(
+      `/student/notifications/${notifId}/read`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+  } catch (err) {
+    console.error("Error marking notification as read:", err);
+  }
+}
 import api from "../services/api";
 
 export async function fetchStudentNotifications(token) {

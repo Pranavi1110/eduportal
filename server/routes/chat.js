@@ -45,14 +45,29 @@ router.post("/send", verifyJWT, async (req, res) => {
 
     // Create notification for receiver
     const Notification = require("../models/Notification");
-    const notif = new Notification({
-      recipient: receiver,
-      sender: req.user.id,
-      type: "message",
-      message: `New message from ${req.user.id}`,
-      link: `/chat/${req.user.id}`,
-    });
-    await notif.save();
+    const receiverUser = await User.findById(receiver);
+    if (receiverUser) {
+      const notif = new Notification({
+        recipient: receiver,
+        sender: req.user.id,
+        type: "message",
+        message: `New message from ${req.user.id}`,
+        link: `/chat/${req.user.id}`,
+      });
+      await notif.save();
+
+      // If receiver is a startup, also create notification for startup dashboard
+      if (receiverUser.userType === "startup") {
+        const startupNotif = new Notification({
+          recipient: receiver,
+          sender: req.user.id,
+          type: "message",
+          message: `New message from ${req.user.id}`,
+          link: `/chat/${req.user.id}`,
+        });
+        await startupNotif.save();
+      }
+    }
 
     res.status(201).json(message);
   } catch (err) {

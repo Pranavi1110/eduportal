@@ -8,12 +8,23 @@ import {
   submitTask,
   fetchBadgesCertificates,
 } from "../../routes/student";
-import { fetchStudentNotifications } from "../../routes/notifications";
+import {
+  fetchStudentNotifications,
+  markNotificationRead,
+} from "../../routes/notifications";
 import { useAuth } from "../../hooks/useAuth";
 
 const StudentDashboard = () => {
   const { user, authData } = useAuth();
   const token = authData?.token;
+  useEffect(() => {
+    console.log("[DEBUG] StudentDashboard user:", user);
+    console.log("[DEBUG] StudentDashboard user.id:", user?.id);
+    console.log("[DEBUG] StudentDashboard token:", token);
+    if (!token) {
+      console.warn("[WARNING] No token found. API calls may fail.");
+    }
+  }, [user, token]);
   const queryClient = useQueryClient();
 
   // Fetch student dashboard data
@@ -65,6 +76,17 @@ const StudentDashboard = () => {
     };
     fetchNotifications();
   }, [token]);
+
+  // Mark notification as read and remove from list
+  const handleNotificationClick = async (notif) => {
+    if (!notif.read) {
+      await markNotificationRead(token, notif._id);
+      setNotifications((prev) => prev.filter((n) => n._id !== notif._id));
+    }
+    if (notif.link) {
+      window.location.href = notif.link;
+    }
+  };
 
   if (dashboardLoading || badgesLoading) {
     return (
@@ -131,31 +153,31 @@ const StudentDashboard = () => {
                     &times;
                   </button>
                 </div>
-                {notifications.length === 0 ? (
+                {notifications.filter((n) => !n.read).length === 0 ? (
                   <div className="text-gray-500">No notifications.</div>
                 ) : (
                   <ul className="space-y-2 max-h-64 overflow-y-auto">
-                    {notifications.map((notif, idx) => (
-                      <li
-                        key={notif._id || idx}
-                        className={`p-3 rounded shadow border ${
-                          notif.read ? "bg-gray-100" : "bg-yellow-50"
-                        }`}
-                      >
-                        <div className="font-medium">{notif.message}</div>
-                        <div className="text-xs text-gray-500">
-                          {new Date(notif.createdAt).toLocaleString()}
-                        </div>
-                        {notif.link && (
-                          <a
-                            href={notif.link}
-                            className="text-blue-600 underline text-sm"
-                          >
-                            View
-                          </a>
-                        )}
-                      </li>
-                    ))}
+                    {notifications
+                      .filter((notif) => !notif.read)
+                      .map((notif, idx) => (
+                        <li
+                          key={notif._id || idx}
+                          className="p-3 rounded shadow border bg-yellow-50"
+                        >
+                          <div className="font-medium">{notif.message}</div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(notif.createdAt).toLocaleString()}
+                          </div>
+                          {notif.link && (
+                            <button
+                              onClick={() => handleNotificationClick(notif)}
+                              className="text-blue-600 underline text-sm"
+                            >
+                              View
+                            </button>
+                          )}
+                        </li>
+                      ))}
                   </ul>
                 )}
               </div>
@@ -176,7 +198,14 @@ const StudentDashboard = () => {
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Assigned Tasks</h2>
           {tasks.length === 0 ? (
-            <div className="text-gray-500">No tasks assigned yet.</div>
+            <div className="flex flex-row items-center gap-4">
+              <button
+                className="btn btn-primary"
+                onClick={() => (window.location.href = "/tasks")}
+              >
+                Go to Tasks
+              </button>
+            </div>
           ) : (
             <div className="w-full max-w-3xl space-y-4">
               {tasks.map((task) => (
@@ -218,7 +247,16 @@ const StudentDashboard = () => {
         {/* Certificates Section */}
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Certificates</h2>
-          {certificates.length === 0 && <p>No certificates available yet.</p>}
+          {certificates.length === 0 && (
+            <div className="flex flex-row items-center gap-4">
+              <button
+                className="btn btn-primary"
+                onClick={() => (window.location.href = "/certificates")}
+              >
+                Go to Certificates
+              </button>
+            </div>
+          )}
           <ul className="list-disc pl-5">
             {certificates.map((cert) => (
               <li key={cert._id}>

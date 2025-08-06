@@ -7,21 +7,49 @@ const Task = require("../models/Task");
 const Certificate = require("../models/Certificate");
 const Notification = require("../models/Notification");
 
+// 🔒 Mark a notification as read
+router.patch("/notifications/:id/read", verifyJWT, async (req, res) => {
+  try {
+    const notif = await Notification.findOneAndUpdate(
+      { _id: req.params.id, recipient: req.user.id },
+      { $set: { read: true } },
+      { new: true }
+    );
+    if (!notif)
+      return res.status(404).json({ error: "Notification not found" });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // 🔒 Get notifications for logged-in student (User model)
 router.get("/notifications", verifyJWT, async (req, res) => {
   try {
     const notifications = await Notification.find({
       recipient: req.user.id,
-    }).sort({ createdAt: -1 });
+    })
+      .sort({ createdAt: -1 })
+      .populate("sender", "firstName lastName");
 
-    console.log(
-      "[DEBUG] /student/notifications userId:",
-      req.user.id,
-      "notifications found:",
-      notifications.length
-    );
+    // Replace message if type is message and sender is populated
+    const notificationsWithName = notifications.map((notif) => {
+      if (
+        notif.type === "message" &&
+        notif.sender &&
+        (notif.sender.firstName || notif.sender.lastName)
+      ) {
+        return {
+          ...notif.toObject(),
+          message: `New message from ${notif.sender.firstName || ""} ${
+            notif.sender.lastName || ""
+          }`.trim(),
+        };
+      }
+      return notif.toObject();
+    });
 
-    res.json(notifications);
+    res.json(notificationsWithName);
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }

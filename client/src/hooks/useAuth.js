@@ -82,6 +82,7 @@ export const useAuth = () => {
   return {
     // Auth state
     user: authData?.user || null,
+    authData,
     isAuthenticated: !!authData?.token || !!authData?.user,
     isLoading: authLoading,
     error: authError,
