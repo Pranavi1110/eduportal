@@ -32,21 +32,33 @@ router.get("/notifications", verifyJWT, async (req, res) => {
       .sort({ createdAt: -1 })
       .populate("sender", "firstName lastName");
 
-    // Replace message if type is message and sender is populated
+    // Add senderName for all notifications
     const notificationsWithName = notifications.map((notif) => {
-      if (
-        notif.type === "message" &&
-        notif.sender &&
-        (notif.sender.firstName || notif.sender.lastName)
-      ) {
-        return {
-          ...notif.toObject(),
-          message: `New message from ${notif.sender.firstName || ""} ${
+      let senderName = "";
+      if (notif.sender) {
+        if (notif.sender.firstName || notif.sender.lastName) {
+          senderName = `${notif.sender.firstName || ""} ${
             notif.sender.lastName || ""
-          }`.trim(),
-        };
+          }`.trim();
+        } else if (notif.sender.username) {
+          senderName = notif.sender.username;
+        } else if (notif.sender.email) {
+          senderName = notif.sender.email;
+        } else {
+          senderName = notif.sender._id.toString();
+        }
       }
-      return notif.toObject();
+
+      let message = notif.message;
+      if (notif.type === "message") {
+        message = `New message from ${senderName}`;
+      }
+
+      return {
+        ...notif.toObject(),
+        senderName,
+        message,
+      };
     });
 
     res.json(notificationsWithName);

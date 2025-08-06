@@ -27,8 +27,62 @@ router.get("/dashboard", verifyJWT, async (req, res) => {
       "assignedStudent",
       "firstName lastName email username"
     );
-    // TODO: Fetch notifications
     res.json({ startup, tasks });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Get notifications for startup
+router.get("/notifications", verifyJWT, async (req, res) => {
+  const Notification = require("../models/Notification");
+  try {
+    const notifications = await Notification.find({
+      recipient: req.user.id,
+    })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "sender",
+        select: "firstName lastName companyName username email",
+      });
+    // Map sender to display name
+    const notificationsWithName = notifications.map((notif) => {
+      let senderName = "";
+      if (notif.sender) {
+        if (notif.sender.firstName || notif.sender.lastName) {
+          senderName = `${notif.sender.firstName || ""} ${
+            notif.sender.lastName || ""
+          }`.trim();
+        } else if (notif.sender.companyName) {
+          senderName = notif.sender.companyName;
+        } else if (notif.sender.username) {
+          senderName = notif.sender.username;
+        } else if (notif.sender.email) {
+          senderName = notif.sender.email;
+        } else {
+          senderName = notif.sender._id;
+        }
+      }
+      return { ...notif.toObject(), senderName };
+    });
+    res.json(notificationsWithName);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Mark a notification as read for startup
+router.patch("/notifications/:id/read", verifyJWT, async (req, res) => {
+  const Notification = require("../models/Notification");
+  try {
+    const notif = await Notification.findOneAndUpdate(
+      { _id: req.params.id, recipient: req.user.id },
+      { read: true },
+      { new: true }
+    );
+    if (!notif)
+      return res.status(404).json({ error: "Notification not found" });
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }

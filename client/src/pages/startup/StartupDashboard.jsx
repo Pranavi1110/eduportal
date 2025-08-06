@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { fetchStartupNotifications, markStartupNotificationRead } from "../../routes/startupNotifications";
+import {
+  fetchStartupNotifications,
+  markStartupNotificationRead,
+} from "../../routes/startupNotifications";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -156,16 +159,30 @@ const StartupDashboard = () => {
                                 key={notif._id || idx}
                                 className="p-3 rounded shadow border bg-yellow-50"
                               >
-                                <div className="font-medium">{notif.message}</div>
+                                <div className="font-medium">
+                                  {notif.message}
+                                </div>
                                 <div className="text-xs text-gray-500">
                                   {new Date(notif.createdAt).toLocaleString()}
                                 </div>
+                                {notif.senderName && (
+                                  <div className="text-xs text-gray-700">
+                                    From: {notif.senderName}
+                                  </div>
+                                )}
                                 {notif.link && (
                                   <button
                                     onClick={async () => {
                                       if (!notif.read) {
-                                        await markStartupNotificationRead(authData?.token, notif._id);
-                                        setNotifications((prev) => prev.filter((n) => n._id !== notif._id));
+                                        await markStartupNotificationRead(
+                                          authData?.token,
+                                          notif._id
+                                        );
+                                        setNotifications((prev) =>
+                                          prev.filter(
+                                            (n) => n._id !== notif._id
+                                          )
+                                        );
                                       }
                                       window.location.href = notif.link;
                                     }}

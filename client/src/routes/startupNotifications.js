@@ -18,9 +18,13 @@ export async function fetchStartupNotifications(token) {
 export async function markStartupNotificationRead(token, notifId) {
   if (!token || !notifId) return;
   try {
-    await api.patch(`/startup/notifications/${notifId}/read`, {}, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await api.patch(
+      `/startup/notifications/${notifId}/read`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
   } catch (err) {
     // handle error
   }
