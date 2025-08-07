@@ -88,7 +88,7 @@ const Chat = () => {
         <title>Chat - Hubinity</title>
         <meta name="description" content="Chat with students and startups" />
       </Helmet>
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center p-4">
         {!userId ? (
           <>
             <h2 className="text-2xl font-bold mb-6">
@@ -109,12 +109,10 @@ const Chat = () => {
                   ? users.filter((u) => u.userType === "startup")
                   : users.filter((u) => u.userType === "student")
                 ).map((user) => {
-                  // Compose display for startups (company name above, email below)
                   let displayName =
                     user.userType === "startup"
                       ? user.companyName
                       : `${user.firstName} ${user.lastName}`;
-                  console.log(user.companyName);
                   let infoLine = "";
                   if (user.userType === "student") {
                     if (user.skills && user.skills.length > 0) {
@@ -125,14 +123,13 @@ const Chat = () => {
                       infoLine = "Skills: None";
                     }
                   }
-
                   return (
                     <div
                       key={user._id}
-                      className="bg-white rounded shadow p-4 flex flex-col md:flex-row md:items-center md:justify-between"
+                      className="bg-primary-card/60 rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow p-5 flex flex-col md:flex-row md:items-center md:justify-between"
                     >
                       <div>
-                        <div className="font-semibold text-lg">
+                        <div className="font-semibold text-lg text-primary-dark">
                           {displayName}
                         </div>
                         {user.userType === "startup" && (
@@ -147,7 +144,7 @@ const Chat = () => {
                         )}
                       </div>
                       <button
-                        className="btn btn-primary mt-2 md:mt-0"
+                        className="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-semibold mt-3 md:mt-0 transition-colors"
                         onClick={() => navigate(`/chat/${user._id}`)}
                       >
                         Chat
@@ -159,7 +156,7 @@ const Chat = () => {
             )}
           </>
         ) : (
-          <div className="w-full max-w-md bg-white rounded shadow p-6">
+          <div className="w-full max-w-md bg-primary-card/60 rounded-2xl shadow-lg border border-gray-100 p-6">
             <button
               className="mb-4 text-blue-600 underline"
               onClick={() => navigate("/chat")}
@@ -169,13 +166,13 @@ const Chat = () => {
             </button>
             {selectedUser ? (
               <>
-                <div className="font-bold text-xl mb-2">
+                <div className="font-bold text-xl mb-2 text-primary-dark">
                   Chat with {selectedUser.firstName} {selectedUser.lastName}
                   {selectedUser.companyName
                     ? ` (${selectedUser.companyName})`
                     : ""}
                 </div>
-                <div className="mb-4 h-64 overflow-y-auto bg-gray-50 p-3 rounded border">
+                <div className="mb-4 h-64 overflow-y-auto bg-white p-3 rounded-xl border border-gray-200">
                   {messagesLoading ? (
                     <div>Loading conversation...</div>
                   ) : messagesError ? (
@@ -186,17 +183,17 @@ const Chat = () => {
                     messages.map((msg) => (
                       <div
                         key={msg._id}
-                        className={`mb-2 flex ${
+                        className={`mb-3 flex ${
                           msg.sender === user?.id
                             ? "justify-end"
                             : "justify-start"
                         }`}
                       >
                         <div
-                          className={`px-3 py-2 rounded-lg max-w-xs ${
+                          className={`px-4 py-2 rounded-2xl max-w-xs shadow-sm border text-sm break-words ${
                             msg.sender === user?.id
-                              ? "bg-blue-500 text-white"
-                              : "bg-gray-200 text-gray-800"
+                              ? "bg-blue-500 text-white border-blue-200"
+                              : "bg-gray-100 text-gray-900 border-gray-200"
                           }`}
                         >
                           {msg.content}
@@ -210,14 +207,14 @@ const Chat = () => {
                 </div>
                 <form onSubmit={handleSend} className="flex flex-col gap-3">
                   <textarea
-                    className="input-field"
+                    className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary resize-none min-h-[48px]"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Type your message..."
                     required
                   />
                   <button
-                    className="btn btn-primary"
+                    className="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-semibold transition-colors"
                     type="submit"
                     disabled={sending || !message}
                   >
