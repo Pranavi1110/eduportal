@@ -181,7 +181,12 @@ const UserSchema = new mongoose.Schema(
         },
       },
     ],
-    // badges, certificates, rating, completedTasks, totalEarnings removed
+    // Certificates earned by the student
+    certificates: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Certificate'
+    }],
+    // badges, rating, completedTasks, totalEarnings removed
   },
   {
     timestamps: true,

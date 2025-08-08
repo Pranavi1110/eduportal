@@ -7,7 +7,7 @@ const notificationSchema = new mongoose.Schema({
     required: true,
   },
   sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // who triggered the notification
-  type: { type: String, enum: ["message", "task-assigned"], required: true },
+  type: { type: String, enum: ["message", "task-assigned", "certificate"], required: true },
   message: { type: String, required: true },
   link: { type: String }, // optional link to related resource (e.g., task, chat)
   read: { type: Boolean, default: false },

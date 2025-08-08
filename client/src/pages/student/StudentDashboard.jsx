@@ -216,7 +216,15 @@ const StudentDashboard = () => {
                 >
                   <div className="flex justify-between items-center mb-2">
                     <div className="font-semibold text-lg">{task.title}</div>
-                    <span className="text-xs px-2 py-1 rounded bg-gray-100">
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        task.status === "completed"
+                          ? "bg-green-100 text-green-800"
+                          : task.status === "in-progress"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
                       {task.status}
                     </span>
                   </div>
@@ -239,6 +247,49 @@ const StudentDashboard = () => {
                       {task.assignedStudent.lastName}
                     </div>
                   )}
+
+                  {/* Task Actions */}
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    {task.status === "completed" ? (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-green-600 font-medium">
+                          ✅ Task completed
+                        </span>
+                        <button
+                          onClick={() =>
+                            (window.location.href = "/certificates")
+                          }
+                          className="btn btn-primary btn-sm"
+                        >
+                          📄 Download Certificate
+                        </button>
+                      </div>
+                    ) : task.status === "in-progress" ? (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-blue-600">
+                          🔄 Task in progress
+                        </span>
+                        <button
+                          onClick={() => (window.location.href = "/tasks")}
+                          className="btn btn-outline btn-sm"
+                        >
+                          View Task Details
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">
+                          📋 Task assigned
+                        </span>
+                        <button
+                          onClick={() => (window.location.href = "/tasks")}
+                          className="btn btn-outline btn-sm"
+                        >
+                          Start Task
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -247,31 +298,63 @@ const StudentDashboard = () => {
 
         {/* Certificates Section */}
         <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Certificates</h2>
-          {certificates.length === 0 && (
-            <div className="flex flex-row items-center gap-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Certificates</h2>
+            <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+              {certificates.length} earned
+            </span>
+          </div>
+          {certificates.length === 0 ? (
+            <div className="text-center py-8 bg-gray-50 rounded-lg">
+              <div className="text-gray-400 text-4xl mb-2">📜</div>
+              <p className="text-gray-600 mb-4">No certificates yet</p>
               <button
                 className="btn btn-primary"
                 onClick={() => (window.location.href = "/certificates")}
               >
-                Go to Certificates
+                View Certificates
               </button>
             </div>
-          )}
-          <ul className="list-disc pl-5">
-            {certificates.map((cert) => (
-              <li key={cert._id}>
-                <a
-                  href={cert.certificateUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline"
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {certificates.slice(0, 3).map((cert) => (
+                <div
+                  key={cert._id}
+                  className="bg-white p-4 rounded-lg shadow border"
                 >
-                  {cert.taskTitle} – Download Certificate
-                </a>
-              </li>
-            ))}
-          </ul>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-gray-900 truncate">
+                      {cert.metadata?.taskTitle || cert.title}
+                    </h3>
+                    <span className="text-xs text-gray-500">
+                      {new Date(cert.issuedAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    {cert.startup?.companyName ||
+                      cert.startup?.firstName ||
+                      "Unknown Company"}
+                  </p>
+                  <button
+                    onClick={() => (window.location.href = "/certificates")}
+                    className="btn btn-primary btn-sm w-full"
+                  >
+                    📄 Download Certificate
+                  </button>
+                </div>
+              ))}
+              {certificates.length > 3 && (
+                <div className="bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                  <button
+                    onClick={() => (window.location.href = "/certificates")}
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    View {certificates.length - 3} more certificates →
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         {/* Profile Quick Access */}

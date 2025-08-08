@@ -335,20 +335,45 @@ const Profile = () => {
           ))}
         </div>
         <h3 className="text-lg font-semibold mt-6 mb-2">Certificates</h3>
-        <div className="flex gap-2 flex-wrap">
+        <div className="grid gap-3 md:grid-cols-2">
           {certificates.length === 0 && (
-            <span className="text-gray-400">No certificates yet.</span>
+            <div className="col-span-2 text-center py-4 bg-gray-50 rounded-lg">
+              <div className="text-gray-400 text-2xl mb-2">📜</div>
+              <span className="text-gray-500">
+                No certificates yet. Complete tasks to earn certificates!
+              </span>
+            </div>
           )}
           {certificates.map((cert, idx) => (
-            <a
+            <div
               key={idx}
-              href={cert.certificateUrl || cert.pdfUrl || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-green-100 text-green-800 px-3 py-1 rounded-full underline"
+              className="bg-green-50 border border-green-200 rounded-lg p-3"
             >
-              {cert.title}
-            </a>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-medium text-green-800 truncate">
+                  {cert.metadata?.taskTitle || cert.title}
+                </h4>
+                <span className="text-xs text-green-600">
+                  {new Date(cert.issuedAt).toLocaleDateString()}
+                </span>
+              </div>
+              <p className="text-sm text-green-700 mb-2">
+                {cert.startup?.companyName || "Unknown Company"}
+              </p>
+              <div className="flex gap-2">
+                <a
+                  href={cert.certificateUrl || cert.pdfUrl || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs hover:bg-green-200"
+                >
+                  📄 Download
+                </a>
+                <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                  #{cert.certificateNumber}
+                </span>
+              </div>
+            </div>
           ))}
         </div>
       </div>

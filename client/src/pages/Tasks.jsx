@@ -162,9 +162,21 @@ const Tasks = () => {
                           {submitting[task._id] ? "Submitting..." : "Submit"}
                         </button>
                       </form>
+                    ) : task.status === "completed" ? (
+                      <div className="flex flex-col gap-3">
+                        <div className="text-green-600 font-semibold text-center">
+                          ✅ Task Completed
+                        </div>
+                        <button
+                          onClick={() => window.location.href = '/certificates'}
+                          className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-lg font-semibold transition-colors"
+                        >
+                          📄 Download Certificate
+                        </button>
+                      </div>
                     ) : (
-                      <div className="text-green-600 font-semibold text-center mt-4">
-                        Link Submitted
+                      <div className="text-yellow-600 font-semibold text-center mt-4">
+                        Link Submitted - Awaiting Review
                       </div>
                     )}
                   </div>
