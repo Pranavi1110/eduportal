@@ -42,7 +42,9 @@ router.get("/notifications", verifyJWT, async (req, res) => {
         if (notif.sender.companyName) {
           senderName = notif.sender.companyName;
         } else if (notif.sender.firstName || notif.sender.lastName) {
-          senderName = `${notif.sender.firstName || ""} ${notif.sender.lastName || ""}`.trim();
+          senderName = `${notif.sender.firstName || ""} ${
+            notif.sender.lastName || ""
+          }`.trim();
         } else if (notif.sender.username) {
           senderName = notif.sender.username;
         } else if (notif.sender.email) {
@@ -135,7 +137,12 @@ router.post("/tasks/:taskId/submit-link", verifyJWT, async (req, res) => {
     const { link } = req.body;
     if (!link) return res.status(400).json({ error: "Link is required" });
 
-    const task = await Task.findById(req.params.taskId).populate('startup', 'companyName firstName lastName email');
+    // Ensure full startup document is populated for companyName (now from User model)
+    const task = await Task.findById(req.params.taskId).populate({
+      path: "startup",
+      select: "companyName firstName lastName email",
+      model: "User",
+    });
     if (!task) return res.status(404).json({ error: "Task not found" });
 
     // Only assigned student can submit
@@ -164,24 +171,26 @@ router.post("/tasks/:taskId/submit-link", verifyJWT, async (req, res) => {
 
     // Generate certificate automatically - Check if certificate already exists
     try {
-      console.log('Starting certificate generation for task:', task._id);
-      
+      console.log("Starting certificate generation for task:", task._id);
+
       // Check if certificate already exists for this task
       const existingCertificate = await Certificate.findOne({
         student: req.user.id,
-        task: task._id
+        task: task._id,
       });
-      
+
       if (existingCertificate) {
-        console.log('Certificate already exists for this task, skipping generation');
+        console.log(
+          "Certificate already exists for this task, skipping generation"
+        );
         return;
       }
-      
+
       const user = await User.findById(req.user.id);
-      console.log('User found:', user._id);
-      
+      console.log("User found:", user._id);
+
       // Get proper student name
-      let studentName = 'Student';
+      let studentName = "Student";
       if (user.firstName && user.lastName) {
         studentName = `${user.firstName} ${user.lastName}`;
       } else if (user.firstName) {
@@ -191,11 +200,11 @@ router.post("/tasks/:taskId/submit-link", verifyJWT, async (req, res) => {
       } else if (user.username) {
         studentName = user.username;
       } else if (user.email) {
-        studentName = user.email.split('@')[0]; // Use email prefix as name
+        studentName = user.email.split("@")[0]; // Use email prefix as name
       }
-      
+
       // Better startup name retrieval
-      let startupName = 'Unknown Company';
+      let startupName = "Unknown Company";
       if (task.startup) {
         if (task.startup.companyName && task.startup.companyName.trim()) {
           startupName = task.startup.companyName.trim();
@@ -204,31 +213,39 @@ router.post("/tasks/:taskId/submit-link", verifyJWT, async (req, res) => {
         } else if (task.startup.firstName && task.startup.firstName.trim()) {
           startupName = task.startup.firstName.trim();
         } else if (task.startup.email) {
-          startupName = task.startup.email.split('@')[0]; // Use email prefix as company name
+          startupName = task.startup.email.split("@")[0]; // Use email prefix as company name
         }
       }
-      
+
       // If still unknown, try to get from task metadata or use a generic name
-      if (startupName === 'Unknown Company' || !startupName || startupName.trim() === '') {
-        startupName = 'Unknown Company';
+      if (
+        startupName === "Unknown Company" ||
+        !startupName ||
+        startupName.trim() === ""
+      ) {
+        startupName = "Unknown Company";
       }
-      
-      console.log('Student name:', studentName);
-      console.log('Startup name:', startupName);
-      
+
+      console.log("Student name:", studentName);
+      console.log("Startup name:", startupName);
+
       const certificateData = {
         studentName,
         taskTitle: task.title,
         startupName,
         completionDate: task.completedAt,
-        certificateNumber: `HUB-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-        skills: task.skills || []
+        certificateNumber: `HUB-${Date.now()}-${Math.floor(
+          Math.random() * 1000
+        )}`,
+        skills: task.skills || [],
       };
 
-      console.log('Certificate data:', certificateData);
+      console.log("Certificate data:", certificateData);
 
-      const certificateFile = await certificateGenerator.generateCertificate(certificateData);
-      console.log('Certificate file generated:', certificateFile);
+      const certificateFile = await certificateGenerator.generateCertificate(
+        certificateData
+      );
+      console.log("Certificate file generated:", certificateFile);
 
       // Create certificate record in database
       const certificate = new Certificate({
@@ -245,41 +262,45 @@ router.post("/tasks/:taskId/submit-link", verifyJWT, async (req, res) => {
           taskTitle: task.title,
           taskCategory: task.category,
           completionDate: task.completedAt,
-          hoursWorked: task.estimatedHours || 0
-        }
+          hoursWorked: task.estimatedHours || 0,
+        },
       });
 
       await certificate.save();
-      console.log('Certificate saved to database:', certificate._id);
+      console.log("Certificate saved to database:", certificate._id);
 
       // Add certificate to user's certificates array
       if (!user.certificates) user.certificates = [];
       user.certificates.push(certificate._id);
       await user.save();
-      console.log('Certificate added to user profile');
+      console.log("Certificate added to user profile");
 
       // Create notification for certificate generation
       const notification = new Notification({
         recipient: req.user.id,
         sender: task.startup?._id,
-        type: 'certificate',
+        type: "certificate",
         message: `Congratulations! Your certificate for "${task.title}" has been generated.`,
-        link: '/certificates',
-        read: false
+        link: "/certificates",
+        read: false,
       });
       await notification.save();
-      console.log('Notification created for certificate');
+      console.log("Notification created for certificate");
 
-      console.log(`Certificate generated successfully for task ${task._id}: ${certificateFile.filename}`);
+      console.log(
+        `Certificate generated successfully for task ${task._id}: ${certificateFile.filename}`
+      );
     } catch (certError) {
-      console.error('Error generating certificate:', certError);
-      console.error('Error stack:', certError.stack);
+      console.error("Error generating certificate:", certError);
+      console.error("Error stack:", certError.stack);
       // Don't fail the task submission if certificate generation fails
     }
 
-    res.json({ message: "Link submitted successfully and certificate generated" });
+    res.json({
+      message: "Link submitted successfully and certificate generated",
+    });
   } catch (err) {
-    console.error('Error in task submission:', err);
+    console.error("Error in task submission:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -321,58 +342,74 @@ router.get("/badges-certificates", verifyJWT, async (req, res) => {
 });
 
 // 🔒 Download certificate PDF
-router.get("/certificates/:certificateId/download", verifyJWT, async (req, res) => {
-  try {
-    console.log('Download request for certificate:', req.params.certificateId);
-    
-    const certificate = await Certificate.findById(req.params.certificateId);
-    if (!certificate) {
-      console.log('Certificate not found in database');
-      return res.status(404).json({ error: "Certificate not found" });
+router.get(
+  "/certificates/:certificateId/download",
+  verifyJWT,
+  async (req, res) => {
+    try {
+      console.log(
+        "Download request for certificate:",
+        req.params.certificateId
+      );
+
+      const certificate = await Certificate.findById(req.params.certificateId);
+      if (!certificate) {
+        console.log("Certificate not found in database");
+        return res.status(404).json({ error: "Certificate not found" });
+      }
+
+      // Check if user owns this certificate
+      if (certificate.student.toString() !== req.user.id) {
+        console.log("User not authorized to download this certificate");
+        return res
+          .status(403)
+          .json({ error: "Not authorized to download this certificate" });
+      }
+
+      const filename = `certificate_${certificate.certificateNumber}.pdf`;
+      const filepath = path.join(__dirname, "../certificates", filename);
+
+      console.log("Looking for certificate file at:", filepath);
+
+      if (!fs.existsSync(filepath)) {
+        console.log("Certificate file not found on disk");
+        return res.status(404).json({ error: "Certificate file not found" });
+      }
+
+      console.log("Certificate file found, sending download");
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${filename}"`
+      );
+
+      const fileStream = fs.createReadStream(filepath);
+      fileStream.pipe(res);
+    } catch (err) {
+      console.error("Error downloading certificate:", err);
+      res.status(500).json({ error: "Server error" });
     }
-
-    // Check if user owns this certificate
-    if (certificate.student.toString() !== req.user.id) {
-      console.log('User not authorized to download this certificate');
-      return res.status(403).json({ error: "Not authorized to download this certificate" });
-    }
-
-    const filename = `certificate_${certificate.certificateNumber}.pdf`;
-    const filepath = path.join(__dirname, '../certificates', filename);
-    
-    console.log('Looking for certificate file at:', filepath);
-
-    if (!fs.existsSync(filepath)) {
-      console.log('Certificate file not found on disk');
-      return res.status(404).json({ error: "Certificate file not found" });
-    }
-
-    console.log('Certificate file found, sending download');
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    
-    const fileStream = fs.createReadStream(filepath);
-    fileStream.pipe(res);
-  } catch (err) {
-    console.error('Error downloading certificate:', err);
-    res.status(500).json({ error: "Server error" });
   }
-});
+);
 
 // 🔒 Get all certificates for current user
 router.get("/certificates", verifyJWT, async (req, res) => {
   try {
-    console.log('Fetching certificates for user:', req.user.id);
-    
+    console.log("Fetching certificates for user:", req.user.id);
+
     const certificates = await Certificate.find({ student: req.user.id })
-      .populate('startup', 'companyName firstName lastName')
-      .populate('task', 'title category skills')
+      .populate({
+        path: "startup",
+        select: "companyName firstName lastName",
+        model: "User",
+      })
+      .populate("task", "title category skills")
       .sort({ issuedAt: -1 });
 
-    console.log('Found certificates:', certificates.length);
+    console.log("Found certificates:", certificates.length);
     res.json(certificates);
   } catch (err) {
-    console.error('Error fetching certificates:', err);
+    console.error("Error fetching certificates:", err);
     res.status(500).json({ error: "Server error" });
   }
 });

@@ -1,18 +1,19 @@
-// Startup routes for dashboard, tasks, students, approvals, notifications, chat
 const express = require("express");
 const router = express.Router();
 const { verifyJWT } = require("../middleware/auth");
-const Startup = require("../models/Startup");
 const Task = require("../models/Task");
 const Student = require("../models/Student");
 const Certificate = require("../models/Certificate");
 const User = require("../models/User");
+
 // Update startup profile
 router.put("/profile", verifyJWT, async (req, res) => {
   try {
-    const updated = await Startup.findByIdAndUpdate(req.user.id, req.body, {
-      new: true,
-    });
+    const updated = await User.findOneAndUpdate(
+      { _id: req.user.id, userType: "startup" },
+      req.body,
+      { new: true }
+    );
     res.json(updated);
   } catch (e) {
     res.status(500).json({ error: "Server error" });
@@ -22,7 +23,10 @@ router.put("/profile", verifyJWT, async (req, res) => {
 // Get startup dashboard data (tasks, notifications, profile)
 router.get("/dashboard", verifyJWT, async (req, res) => {
   try {
-    const startup = await Startup.findById(req.user.id);
+    const startup = await User.findOne({
+      _id: req.user.id,
+      userType: "startup",
+    });
     const tasks = await Task.find({ startup: req.user.id }).populate(
       "assignedStudent",
       "firstName lastName email username"
@@ -45,7 +49,7 @@ router.get("/notifications", verifyJWT, async (req, res) => {
         path: "sender",
         select: "firstName lastName companyName username email",
       });
-    // Map sender to display name
+
     const notificationsWithName = notifications.map((notif) => {
       let senderName = "";
       if (notif.sender) {
@@ -94,7 +98,6 @@ router.post("/tasks", verifyJWT, async (req, res) => {
     const task = new Task({ ...req.body, startup: req.user.id });
     await task.save();
 
-    // If assignedStudent exists, create notification for student
     if (task.assignedStudent) {
       const Notification = require("../models/Notification");
       const notif = new Notification({
@@ -118,16 +121,24 @@ router.post("/tasks", verifyJWT, async (req, res) => {
 router.get("/students", verifyJWT, async (req, res) => {
   try {
     const filters = req.query;
-    // Example: filter by skills, badges, work experience
-    const query = {};
-    if (filters.skills)
-      query["skills.name"] = { $in: filters.skills.split(",") };
-    if (filters.badges)
-      query["badges.name"] = { $in: filters.badges.split(",") };
-    // TODO: Add work experience filter
-    const students = await Student.find(query);
+    const query = { userType: "student" };
+    if (filters.skills) {
+      const skillsArr = filters.skills
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (skillsArr.length === 1) {
+        query["skills.name"] = { $regex: skillsArr[0], $options: "i" };
+      } else if (skillsArr.length > 1) {
+        query["$or"] = skillsArr.map((skill) => ({
+          "skills.name": { $regex: skill, $options: "i" },
+        }));
+      }
+    }
+    const students = await User.find(query);
     res.json(students);
   } catch (err) {
+    console.error("ERROR DEBUG", err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -136,13 +147,11 @@ router.get("/students", verifyJWT, async (req, res) => {
 router.post("/tasks/:taskId/assign", verifyJWT, async (req, res) => {
   try {
     const { studentId } = req.body;
-    // Find the student and get their userId
     const Student = require("../models/Student");
     const student = await Student.findById(studentId);
     if (!student) {
       return res.status(404).json({ error: "Student not found" });
     }
-    // Use the userId (User _id) for assignedStudent
     const task = await Task.findByIdAndUpdate(
       req.params.taskId,
       { assignedStudent: student.userId, status: "assigned" },
@@ -160,29 +169,28 @@ router.post("/tasks/:taskId/approve", verifyJWT, async (req, res) => {
     const { studentId, approve } = req.body;
     const task = await Task.findById(req.params.taskId);
     if (!task) return res.status(404).json({ error: "Task not found" });
-    // Find submission
+
     const submission = task.submissions.find(
       (s) => s.student.toString() === studentId
     );
     if (!submission)
       return res.status(404).json({ error: "Submission not found" });
+
     submission.status = approve ? "approved" : "rejected";
     await task.save();
-    // TODO: Generate certificate, notify student, send email
     res.json({ message: approve ? "Task approved" : "Task rejected" });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }
 });
-// or the correct path to Startup model
+
+// Get all startups
 router.get("/all", async (req, res) => {
   try {
-    // Pull startup users and select only needed fields
     const startups = await User.find(
       { userType: "startup" },
       "_id companyName email"
     );
-
     res.json(startups);
   } catch (error) {
     console.error("Error fetching startups:", error);
@@ -190,11 +198,14 @@ router.get("/all", async (req, res) => {
   }
 });
 
+// Get startup names
 router.get("/names", async (req, res) => {
   try {
-    const startups = await Startup.find({}, "_id companyName");
-    console.log(startups);
-    res.json(startups); // Array of { _id, companyName }
+    const startups = await User.find(
+      { userType: "startup" },
+      "_id companyName"
+    );
+    res.json(startups);
   } catch (error) {
     console.error("Error fetching startup names:", error);
     res.status(500).json({ message: "Failed to fetch startup names" });

@@ -9,7 +9,10 @@ app.use(cors());
 app.use(express.json());
 
 // Serve static files from certificates directory
-app.use('/api/certificates', express.static(path.join(__dirname, 'certificates')));
+app.use(
+  "/api/certificates",
+  express.static(path.join(__dirname, "certificates"))
+);
 
 // MongoDB connection
 mongoose
@@ -26,7 +29,8 @@ const jwt = require("jsonwebtoken");
 
 // Register route
 app.post("/api/register", async (req, res) => {
-  const { firstName, lastName, email, password, userType, companyName } = req.body;
+  const { firstName, lastName, email, password, userType, companyName } =
+    req.body;
 
   try {
     let user = await User.findOne({ email });
@@ -51,7 +55,6 @@ app.post("/api/register", async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
-
 
 // Login route
 app.post("/api/login", async (req, res) => {
@@ -78,6 +81,7 @@ app.post("/api/login", async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         userType: user.userType,
+        ...(user.userType === "startup" && { companyName: user.companyName }),
       },
     });
   } catch (err) {

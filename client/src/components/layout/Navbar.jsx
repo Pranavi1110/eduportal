@@ -34,6 +34,17 @@ const Navbar = () => {
     { name: "Certificates", href: "/certificates", icon: Award },
   ];
 
+  // Helper to get initial for avatar
+  const getUserInitial = () => {
+    if (user?.userType === "startup" && user?.companyName?.trim()) {
+      return user.companyName.trim().charAt(0).toUpperCase();
+    }
+    if (user?.firstName?.trim()) {
+      return user.firstName.trim().charAt(0).toUpperCase();
+    }
+    return "U";
+  };
+
   return (
     <nav className="bg-primary-white shadow-soft">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -78,11 +89,15 @@ const Navbar = () => {
                     <div className="flex items-center space-x-2">
                       <div className="w-8 h-8 bg-primary-button rounded-full flex items-center justify-center">
                         <span className="text-white text-sm font-medium">
-                          {user?.firstName?.charAt(0) || "U"}
+                          {getUserInitial()}
                         </span>
                       </div>
                       <span className="text-sm font-medium text-primary-dark">
-                        {user?.firstName} {user?.lastName}
+                        {user?.userType === "startup" && user?.companyName
+                          ? user.companyName
+                          : `${user?.firstName || ""} ${
+                              user?.lastName || ""
+                            }`.trim()}
                       </span>
                     </div>
                     <div className="relative">
@@ -185,12 +200,16 @@ const Navbar = () => {
                 <div className="flex items-center px-4">
                   <div className="w-8 h-8 bg-primary-button rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
-                      {user?.firstName?.charAt(0) || "U"}
+                      {getUserInitial()}
                     </span>
                   </div>
                   <div className="ml-3">
                     <div className="text-base font-medium text-primary-dark">
-                      {user?.firstName} {user?.lastName}
+                      {user?.userType === "startup" && user?.companyName
+                        ? user.companyName
+                        : `${user?.firstName || ""} ${
+                            user?.lastName || ""
+                          }`.trim()}
                     </div>
                     <div className="text-sm font-medium text-gray-500">
                       {user?.email}

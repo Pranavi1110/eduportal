@@ -5,7 +5,6 @@ const BrowseStudents = () => {
   const [students, setStudents] = useState([]);
   const [filters, setFilters] = useState({
     skills: "",
-    badges: "",
     workExp: "",
   });
   const [loading, setLoading] = useState(false);
@@ -15,7 +14,6 @@ const BrowseStudents = () => {
     try {
       const params = {};
       if (filters.skills) params.skills = filters.skills;
-      if (filters.badges) params.badges = filters.badges;
       // TODO: Add workExp filter
       const res = await api.get("/startup/students", { params });
       setStudents(res.data);
@@ -50,13 +48,7 @@ const BrowseStudents = () => {
           className="input-field"
           placeholder="Skills (comma separated)"
         />
-        <input
-          name="badges"
-          value={filters.badges}
-          onChange={handleFilterChange}
-          className="input-field"
-          placeholder="Badges (comma separated)"
-        />
+        {/* badges filter removed */}
         {/* <input name="workExp" value={filters.workExp} onChange={handleFilterChange} className="input-field" placeholder="Work Experience (years)" /> */}
         <button type="submit" className="btn-primary">
           Filter
@@ -74,9 +66,9 @@ const BrowseStudents = () => {
               <div className="mb-1">
                 <b>Skills:</b> {s.skills?.map((sk) => sk.name).join(", ")}
               </div>
-              <div className="mb-1">
+              {/* <div className="mb-1">
                 <b>Badges:</b> {s.badges?.map((b) => b.name).join(", ")}
-              </div>
+              </div> */}
               {/* <div className="mb-1"><b>Work Exp:</b> {s.workExp} years</div> */}
             </div>
           ))}

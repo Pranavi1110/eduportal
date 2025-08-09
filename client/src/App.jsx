@@ -216,6 +216,14 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/startup/browse-students"
+                  element={
+                    <ProtectedRoute allowedUserTypes={["startup"]}>
+                      <BrowseStudents />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Admin Routes */}
                 <Route
