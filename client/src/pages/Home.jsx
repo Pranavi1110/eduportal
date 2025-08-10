@@ -22,12 +22,12 @@ const Home = () => {
       description:
         "Bridge the gap between academic talent and real-world opportunities.",
     },
-    {
-      icon: <Briefcase className="w-8 h-8" />,
-      title: "Verified Skills & Badges",
-      description:
-        "Students earn verified badges through practical task completion.",
-    },
+    // {
+    //   icon: <Briefcase className="w-8 h-8" />,
+    //   title: "Verified Skills & Badges",
+    //   description:
+    //     "Students earn verified badges through practical task completion.",
+    // },
     {
       icon: <Award className="w-8 h-8" />,
       title: "Professional Certificates",
@@ -40,29 +40,22 @@ const Home = () => {
     },
   ];
 
-  const stats = [
-    { number: "500+", label: "Students Connected" },
-    { number: "100+", label: "Startups Partnered" },
-    { number: "1000+", label: "Tasks Completed" },
-    { number: "95%", label: "Satisfaction Rate" },
-  ];
-
-  const testimonials = [
-    {
-      name: "Sarah Chen",
-      role: "Computer Science Student",
-      content:
-        "Hubinity helped me gain real-world experience and build my portfolio. The verification system gave me credibility with employers.",
-      rating: 5,
-    },
-    {
-      name: "Mike Rodriguez",
-      role: "Startup Founder",
-      content:
-        "We found amazing talent through Hubinity. The skill verification process ensures we get qualified students for our projects.",
-      rating: 5,
-    },
-  ];
+  // const testimonials = [
+  //   {
+  //     name: "Sarah Chen",
+  //     role: "Computer Science Student",
+  //     content:
+  //       "Hubinity helped me gain real-world experience and build my portfolio. The verification system gave me credibility with employers.",
+  //     rating: 5,
+  //   },
+  //   {
+  //     name: "Mike Rodriguez",
+  //     role: "Startup Founder",
+  //     content:
+  //       "We found amazing talent through Hubinity. The skill verification process ensures we get qualified students for our projects.",
+  //     rating: 5,
+  //   },
+  // ];
 
   return (
     <>
@@ -98,22 +91,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-primary-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-4xl font-bold text-primary-dark mb-2">
-                  {stat.number}
-                </div>
-                <div className="text-gray-600">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Features Section */}
       <section className="py-20 bg-primary-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -127,11 +104,11 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 place-items-center">
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="card text-center hover:shadow-medium transition-shadow"
+                className="card text-center hover:shadow-medium transition-shadow max-w-sm"
               >
                 <div className="text-primary-button mb-4 flex justify-center">
                   {feature.icon}
@@ -203,7 +180,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* Testimonials Section
       <section className="py-20 bg-primary-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -216,9 +193,9 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 place-items-center">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="card">
+              <div key={index} className="card max-w-sm">
                 <div className="flex items-center mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star
@@ -242,7 +219,7 @@ const Home = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* CTA Section */}
       <section className="py-20 gradient-bg text-primary-cta">

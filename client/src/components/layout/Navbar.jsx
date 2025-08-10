@@ -28,6 +28,7 @@ const Navbar = () => {
 
   const navigation = [
     { name: "Home", href: "/", icon: Home },
+    { name: "Dashboard", href: "/dashboard", icon: User },
     { name: "Tasks", href: "/tasks", icon: Briefcase },
     { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Messages", href: "/messages", icon: MessageSquare },

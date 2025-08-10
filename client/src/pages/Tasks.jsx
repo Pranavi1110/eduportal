@@ -168,8 +168,10 @@ const Tasks = () => {
                           ✅ Task Completed
                         </div>
                         <button
-                          onClick={() => window.location.href = '/certificates'}
-                          className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-lg font-semibold transition-colors"
+                          onClick={() =>
+                            (window.location.href = "/certificates")
+                          }
+                          className="bg-primary-button hover:bg-primary-dark text-white px-5 py-2 rounded-lg font-semibold "
                         >
                           📄 Download Certificate
                         </button>

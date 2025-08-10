@@ -144,7 +144,7 @@ const Chat = () => {
                         )}
                       </div>
                       <button
-                        className="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-semibold mt-3 md:mt-0 transition-colors"
+                        className="bg-primary-button hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-semibold mt-3 md:mt-0 transition-colors"
                         onClick={() => navigate(`/chat/${user._id}`)}
                       >
                         Chat

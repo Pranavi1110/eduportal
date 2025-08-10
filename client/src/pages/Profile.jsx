@@ -179,7 +179,7 @@ const Profile = () => {
             name="college"
             value={form.college}
             onChange={handleChange}
-            className="input input-bordered w-full bg-gray-100 focus:bg-white"
+            className="input input-bordered w-full bg-gray-100 focus:bg-white p-2"
           />
         </div>
         {/* College Email */}
@@ -190,7 +190,7 @@ const Profile = () => {
             name="collegeEmail"
             value={form.collegeEmail}
             onChange={handleChange}
-            className="input input-bordered w-full bg-gray-100 focus:bg-white"
+            className="input input-bordered w-full bg-gray-100 focus:bg-white p-2"
           />
         </div>
         {/* Bio */}
@@ -200,7 +200,7 @@ const Profile = () => {
             name="bio"
             value={form.bio}
             onChange={handleChange}
-            className="textarea textarea-bordered w-full bg-gray-100 focus:bg-white"
+            className="textarea textarea-bordered w-full bg-gray-100 focus:bg-white p-2"
           />
         </div>
         {/* Completed Tasks, Earnings, and Rating fields removed */}
@@ -210,12 +210,12 @@ const Profile = () => {
           <ul className="mb-2">
             {form.projects.map((proj, idx) => (
               <li key={idx} className="mb-1 flex items-center gap-2">
-                <span className="font-medium">{proj.title}</span>
+                <span className="font-medium p-2">{proj.title}</span>
                 <a
                   href={proj.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 underline"
+                  className="text-blue-600 underline p-2"
                 >
                   {proj.link}
                 </a>
@@ -227,7 +227,7 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={() => handleProjectRemove(idx)}
-                  className="text-red-500 ml-2"
+                  className="text-red-500 ml-2 "
                 >
                   Remove
                 </button>
@@ -242,7 +242,7 @@ const Profile = () => {
               onChange={(e) =>
                 setNewProject({ ...newProject, title: e.target.value })
               }
-              className="input input-bordered"
+              className="input input-bordered p-2"
             />
             <input
               type="url"
@@ -251,7 +251,7 @@ const Profile = () => {
               onChange={(e) =>
                 setNewProject({ ...newProject, link: e.target.value })
               }
-              className="input input-bordered bg-gray-100 focus:bg-white"
+              className="input input-bordered p-2 bg-gray-100 focus:bg-white"
             />
             <input
               type="text"
@@ -260,7 +260,7 @@ const Profile = () => {
               onChange={(e) =>
                 setNewProject({ ...newProject, technologies: e.target.value })
               }
-              className="input input-bordered bg-gray-100 focus:bg-white"
+              className="input input-bordered p-2 bg-gray-100 focus:bg-white"
             />
           </div>
           <textarea
@@ -269,7 +269,7 @@ const Profile = () => {
             onChange={(e) =>
               setNewProject({ ...newProject, description: e.target.value })
             }
-            className="textarea textarea-bordered w-full mb-2 bg-gray-100 focus:bg-white"
+            className="textarea  p-2 textarea-bordered w-full mb-2 bg-gray-100 focus:bg-white"
           />
           <button
             type="button"
@@ -316,7 +316,7 @@ const Profile = () => {
               onChange={(e) =>
                 setNewExp({ ...newExp, company: e.target.value })
               }
-              className="input input-bordered bg-gray-100 focus:bg-white"
+              className="input input-bordered p-2 bg-gray-100 focus:bg-white"
             />
           </div>
           <input
@@ -326,7 +326,7 @@ const Profile = () => {
             onChange={(e) =>
               setNewExp({ ...newExp, description: e.target.value })
             }
-            className="input input-bordered w-full mb-2 bg-gray-100 focus:bg-white"
+            className="input input-bordered  p-2 w-full mb-2 bg-gray-100 focus:bg-white"
           />
           <div className="flex gap-2 mb-2">
             <input
@@ -336,7 +336,7 @@ const Profile = () => {
               onChange={(e) =>
                 setNewExp({ ...newExp, startDate: e.target.value })
               }
-              className="input input-bordered bg-gray-100 focus:bg-white"
+              className="input  p-2 input-bordered bg-gray-100 focus:bg-white"
             />
             <input
               type="date"
@@ -382,14 +382,14 @@ const Profile = () => {
               onChange={(e) =>
                 setNewSkill({ ...newSkill, name: e.target.value })
               }
-              className="input input-bordered"
+              className="input input-bordered p-2"
             />
             <select
               value={newSkill.level}
               onChange={(e) =>
                 setNewSkill({ ...newSkill, level: e.target.value })
               }
-              className="select select-bordered bg-gray-100 focus:bg-white"
+              className="select select-bordered bg-gray-100 focus:bg-white p-2"
             >
               <option value="beginner">Beginner</option>
               <option value="intermediate">Intermediate</option>
