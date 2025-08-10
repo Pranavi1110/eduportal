@@ -112,10 +112,13 @@ router.get("/dashboard", verifyJWT, async (req, res) => {
     const userId = req.user.id;
     const user = await User.findById(userId);
 
-    const tasks = await Task.find({ assignedStudent: userId }).populate(
-      "assignedStudent",
-      "firstName lastName email username"
-    );
+    const tasks = await Task.find({ assignedStudent: userId })
+      .populate("assignedStudent", "firstName lastName email username")
+      .populate({
+        path: "startup",
+        select: "companyName email",
+        model: "User",
+      });
 
     console.log(
       "[DEBUG] /student/dashboard userId:",
@@ -391,6 +394,23 @@ router.get(
     }
   }
 );
+
+router.get("/tasks/all", verifyJWT, async (req, res) => {
+  try {
+    const tasks = await Task.find({})
+      .populate("assignedStudent", "firstName lastName username email")
+      .populate({
+        path: "startup",
+        select: "companyName firstName lastName email",
+        model: "User",
+      });
+
+    res.json(tasks);
+  } catch (err) {
+    console.error("Error fetching all tasks:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 // 🔒 Get all certificates for current user
 router.get("/certificates", verifyJWT, async (req, res) => {

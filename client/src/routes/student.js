@@ -16,6 +16,7 @@ export async function submitTask(token, taskId, data) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
+    
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Failed to submit task");
