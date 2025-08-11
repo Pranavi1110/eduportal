@@ -32,7 +32,7 @@ const Navbar = () => {
     { name: "Tasks", href: "/tasks", icon: Briefcase },
     { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Messages", href: "/messages", icon: MessageSquare },
-    { name: "Certificates", href: "/certificates", icon: Award },
+    // Certificates link rendered conditionally below
   ];
 
   // Helper to get initial for avatar
@@ -78,6 +78,21 @@ const Navbar = () => {
                   {item.name}
                 </Link>
               ))}
+
+              {/* Certificates link only for non-startup users */}
+              {user?.userType !== "startup" && (
+                <Link
+                  key="Certificates"
+                  to="/certificates"
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive("/certificates")
+                      ? "text-primary-button bg-primary-card"
+                      : "text-gray-600 hover:text-primary-dark hover:bg-gray-50"
+                  }`}
+                >
+                  Certificates
+                </Link>
+              )}
             </div>
           </div>
 
@@ -96,9 +111,7 @@ const Navbar = () => {
                       <span className="text-sm font-medium text-primary-dark">
                         {user?.userType === "startup" && user?.companyName
                           ? user.companyName
-                          : `${user?.firstName || ""} ${
-                              user?.lastName || ""
-                            }`.trim()}
+                          : `${user?.firstName || ""} ${user?.lastName || ""}`.trim()}
                       </span>
                     </div>
                     <div className="relative">
@@ -191,10 +204,27 @@ const Navbar = () => {
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <item.icon className="mr-3 h-5 w-5" />
+                {React.createElement(item.icon, { className: "mr-3 h-5 w-5" })}
                 {item.name}
               </Link>
             ))}
+
+            {/* Certificates link only for non-startup users (mobile) */}
+            {user?.userType !== "startup" && (
+              <Link
+                key="Certificates"
+                to="/certificates"
+                className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
+                  isActive("/certificates")
+                    ? "text-primary-button bg-primary-card"
+                    : "text-gray-600 hover:text-primary-dark hover:bg-gray-50"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Award className="mr-3 h-5 w-5" />
+                Certificates
+              </Link>
+            )}
 
             {isAuthenticated ? (
               <div className="pt-4 pb-3 border-t border-gray-200">
@@ -208,9 +238,7 @@ const Navbar = () => {
                     <div className="text-base font-medium text-primary-dark">
                       {user?.userType === "startup" && user?.companyName
                         ? user.companyName
-                        : `${user?.firstName || ""} ${
-                            user?.lastName || ""
-                          }`.trim()}
+                        : `${user?.firstName || ""} ${user?.lastName || ""}`.trim()}
                     </div>
                     <div className="text-sm font-medium text-gray-500">
                       {user?.email}

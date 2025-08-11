@@ -5,12 +5,13 @@ import api from "../services/api";
 import toast from "react-hot-toast";
 
 const Certificates = () => {
-  const { authData } = useAuth();
+  const { authData, user } = useAuth();
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchCertificates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchCertificates = async () => {
@@ -27,6 +28,16 @@ const Certificates = () => {
       setLoading(false);
     }
   };
+
+  if (user?.userType === "startup") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg text-gray-500">
+          Certificates are only available for students.
+        </div>
+      </div>
+    );
+  }
 
   const downloadCertificate = async (certificateId, certificateNumber) => {
     try {

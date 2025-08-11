@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
+import { useAuth } from "../hooks/useAuth";
 import api from "../services/api";
 import toast from "react-hot-toast";
 
 const Tasks = () => {
+  const { user } = useAuth();
   const [assignedTasks, setAssignedTasks] = useState([]);
   const [allTasks, setAllTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -71,7 +73,7 @@ const Tasks = () => {
                 : task.status === "submitted"
                 ? "bg-yellow-100 text-yellow-700"
                 : task.status === "completed"
-                ? "bg-green-100 text-green-700"
+                ? "bg-green-200 text-green-700 border border-green-400"
                 : "bg-gray-100 text-gray-700"
             }`}
           >
@@ -137,7 +139,7 @@ const Tasks = () => {
               />
               <button
                 type="submit"
-                className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-lg font-semibold transition-colors"
+                className="bg-primary-button hover:bg-primary-dark text-white px-5 py-2 rounded-lg font-semibold transition-colors"
                 disabled={submitting[task._id]}
               >
                 {submitting[task._id] ? "Submitting..." : "Submit"}
@@ -173,12 +175,77 @@ const Tasks = () => {
       </Helmet>
 
       <div className="min-h-screen bg-gray-50 flex flex-col items-center py-8">
-        {/* <h2 className="text-3xl font-garamond font-bold mb-8 text-primary-dark">
-          Your Tasks
-        </h2> */}
-
         {loading ? (
           <div>Loading...</div>
+        ) : user?.userType === "startup" ? (
+          <>
+            <h3 className="text-2xl font-bold mb-4 text-primary-dark">
+              Your Posted Tasks
+            </h3>
+            {allTasks.filter((task) => task.startup?._id === user._id)
+              .length === 0 ? (
+              <div className="text-gray-500 mb-8">No tasks posted by you.</div>
+            ) : (
+              <div className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-12 py-4">
+                {allTasks
+                  .filter((task) => task.startup?._id === user._id)
+                  .map((task) => (
+                    <div
+                      key={task._id}
+                      className="bg-white rounded-3xl shadow-xl border border-gray-200 hover:shadow-2xl transition-shadow p-8 flex flex-col justify-between min-h-[320px] relative group"
+                      style={{ minHeight: 320 }}
+                    >
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <div className="font-bold text-2xl text-primary-dark flex-1 truncate">
+                            {task.title}
+                          </div>
+                          <span
+                            className={`text-xs px-4 py-1 rounded-full font-bold ml-2 shadow group-hover:bg-blue-200 group-hover:text-blue-900 transition-colors absolute top-6 right-6 ${
+                              task.status === "completed"
+                                ? "bg-green-200 text-green-700 border border-green-400"
+                                : task.status === "open"
+                                ? "bg-blue-100 text-blue-700"
+                                : task.status === "submitted"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {task.status}
+                          </span>
+                        </div>
+                        <div className="text-gray-700 mb-3 text-base line-clamp-3">
+                          {task.description}
+                        </div>
+                        <div className="flex flex-wrap gap-3 mb-3">
+                          <span className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded">
+                            Category: {task.category}
+                          </span>
+                          <span className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded">
+                            Skills: {task.skills?.join(", ")}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 mb-1">
+                          Deadline:{" "}
+                          <span className="font-medium">
+                            {new Date(task.deadline).toLocaleDateString()}
+                          </span>
+                        </div>
+                        {task.assignedStudent && (
+                          <div className="text-xs text-blue-700 mt-1">
+                            Assigned to:{" "}
+                            <span className="font-semibold">
+                              {task.assignedStudent.firstName}{" "}
+                              {task.assignedStudent.lastName}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </>
         ) : (
           <>
             {/* Assigned Tasks */}
@@ -189,7 +256,13 @@ const Tasks = () => {
               <div className="text-gray-500 mb-8">No assigned tasks found.</div>
             ) : (
               <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                {assignedTasks.map((task) => renderTaskCard(task, true))}
+                {[...assignedTasks]
+                  .sort((a, b) => {
+                    if (a.status === "open" && b.status !== "open") return -1;
+                    if (a.status !== "open" && b.status === "open") return 1;
+                    return 0;
+                  })
+                  .map((task) => renderTaskCard(task, true))}
               </div>
             )}
 
@@ -252,6 +325,17 @@ const Tasks = () => {
                             </span>
                           )}
                         </div>
+                        {/* Chat button for startup */}
+                        {task.startup?._id && (
+                          <button
+                            className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                            onClick={() =>
+                              (window.location.href = `/messages?startupId=${task.startup._id}`)
+                            }
+                          >
+                            Chat with {task.startup.companyName}
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}

@@ -13,6 +13,8 @@ const Profile = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  // Detect startup user
+  const isStartup = user?.userType === "startup";
   const userId = user?._id || user?.id;
   const auth = JSON.parse(localStorage.getItem("auth"));
   const token = user?.token || auth?.token;
@@ -161,16 +163,117 @@ const Profile = () => {
     }
   };
 
-  if (isLoading || form === null)
+  if (isLoading || form === null) {
     return <div className="p-8 text-gray-500">Loading profile...</div>;
+  }
 
+  if (isStartup) {
+    return (
+      <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow mt-8">
+        <h2 className="text-2xl font-bold mb-4">Startup Profile</h2>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="mb-4">
+            <label className="block font-semibold mb-1">Company Name</label>
+            <input
+              type="text"
+              name="companyName"
+              value={form?.companyName || user.companyName || ""}
+              onChange={(e) =>
+                setForm({ ...form, companyName: e.target.value })
+              }
+              className="input input-bordered w-full bg-gray-100 focus:bg-white p-2"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block font-semibold mb-1">Company Email</label>
+            <input
+              type="email"
+              name="email"
+              value={form?.email || user.email || ""}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className="input input-bordered w-full bg-gray-100 focus:bg-white p-2"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block font-semibold mb-1">Skills Required</label>
+            <ul className="mb-2">
+              {(form?.skills?.length === 0 || !form?.skills) && (
+                <li>
+                  <span className="text-gray-400">No skills listed.</span>
+                </li>
+              )}
+              {form?.skills?.map((skill, idx) => (
+                <li key={idx} className="mb-1 flex items-center gap-2">
+                  <span className="font-medium">{skill.name || skill}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm({
+                        ...form,
+                        skills: form.skills.filter((_, i) => i !== idx),
+                      })
+                    }
+                    className="text-red-500 ml-2"
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                placeholder="Skill Name"
+                value={newSkill.name}
+                onChange={(e) =>
+                  setNewSkill({ ...newSkill, name: e.target.value })
+                }
+                className="input input-bordered p-2"
+              />
+              <select
+                value={newSkill.level}
+                onChange={(e) =>
+                  setNewSkill({ ...newSkill, level: e.target.value })
+                }
+                className="select select-bordered bg-gray-100 focus:bg-white p-2"
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+                <option value="expert">Expert</option>
+              </select>
+              <button
+                type="button"
+                onClick={() => {
+                  if (newSkill.name.trim()) {
+                    setForm({
+                      ...form,
+                      skills: [...(form?.skills || []), newSkill],
+                    });
+                    setNewSkill({ name: "", level: "beginner" });
+                  }
+                }}
+                className="btn btn-sm btn-primary"
+              >
+                Add Skill
+              </button>
+            </div>
+          </div>
+          <button type="submit" className="btn btn-primary">
+            Save Profile
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  // Student profile UI (unchanged)
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow mt-8">
       <h2 className="text-2xl font-bold mb-4">
         {data && data.user == null ? "Add Profile" : "Edit Profile"}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* College */}
         {/* College */}
         <div>
           <label className="block font-semibold mb-1">College</label>
@@ -203,7 +306,6 @@ const Profile = () => {
             className="textarea textarea-bordered w-full bg-gray-100 focus:bg-white p-2"
           />
         </div>
-        {/* Completed Tasks, Earnings, and Rating fields removed */}
         {/* Projects */}
         <div>
           <label className="block font-semibold mb-1">Projects</label>
