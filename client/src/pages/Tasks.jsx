@@ -11,6 +11,13 @@ const Tasks = () => {
   const [loading, setLoading] = useState(true);
   const [submission, setSubmission] = useState({});
   const [submitting, setSubmitting] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // NEW: filter/sort states
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [deadlineFilter, setDeadlineFilter] = useState("");
+  const [startupFilter, setStartupFilter] = useState("");
+  const [sortBy, setSortBy] = useState("");
 
   const handleInput = (taskId, value) => {
     setSubmission((prev) => ({
@@ -56,11 +63,57 @@ const Tasks = () => {
     fetchTasks();
   }, []);
 
+  // Main filter + sort function
+  const filterAndSortTasks = (tasks) => {
+    let updated = [...tasks];
+
+    // Search filter
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      updated = updated.filter((task) =>
+        [task.title, task.description, task.category, ...(task.skills || [])]
+          .filter(Boolean)
+          .some((field) => field.toLowerCase().includes(term))
+      );
+    }
+
+    // Category filter
+    if (categoryFilter) {
+      updated = updated.filter(
+        (task) => task.category?.toLowerCase() === categoryFilter.toLowerCase()
+      );
+    }
+
+    // Deadline filter
+    if (deadlineFilter) {
+      updated = updated.filter(
+        (task) => new Date(task.deadline) <= new Date(deadlineFilter)
+      );
+    }
+
+    // Startup filter
+    if (startupFilter) {
+      updated = updated.filter((task) =>
+        startupFilter === "true" ? !!task.startup : !task.startup
+      );
+    }
+
+    // Sorting
+    if (sortBy === "deadline") {
+      updated.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+    } else if (sortBy === "title") {
+      updated.sort((a, b) => a.title.localeCompare(b.title));
+    }
+
+    return updated;
+  };
+
   const renderTaskCard = (task, isAssigned) => (
     <div
       key={task._id}
       className="bg-primary-card/60 rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-shadow p-6 flex flex-col justify-between min-h-[320px]"
     >
+      {/* Task content */}
       <div>
         <div className="flex justify-between items-center mb-2">
           <div className="font-bold text-xl text-primary-dark flex-1 truncate">
@@ -77,13 +130,7 @@ const Tasks = () => {
                 : "bg-gray-100 text-gray-700"
             }`}
           >
-            {task.status === "open"
-              ? "Open"
-              : task.status === "submitted"
-              ? "Submitted"
-              : task.status === "completed"
-              ? "Completed"
-              : task.status}
+            {task.status}
           </span>
         </div>
         <div className="text-gray-700 mb-2 line-clamp-3">
@@ -108,20 +155,10 @@ const Tasks = () => {
           <span className="font-semibold">
             {task.startup?.companyName || "Unknown"}
           </span>
-          {task.startup?.email && (
-            <span className="ml-2 text-gray-500">({task.startup.email})</span>
-          )}
         </div>
-        {task.assignedStudent && (
-          <div className="text-xs text-blue-700 mt-1">
-            Assigned to:{" "}
-            <span className="font-semibold">
-              {task.assignedStudent.firstName} {task.assignedStudent.lastName}
-            </span>
-          </div>
-        )}
       </div>
 
+      {/* Submission form */}
       {isAssigned && (
         <div className="mt-6">
           {task.status === "open" ? (
@@ -132,31 +169,19 @@ const Tasks = () => {
               <input
                 type="url"
                 placeholder="Submit your work link"
-                className="border border-gray-300 rounded-lg px-3 py-2 flex-1 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="border border-gray-300 rounded-lg px-3 py-2 flex-1"
                 value={submission[task._id] || ""}
                 onChange={(e) => handleInput(task._id, e.target.value)}
                 required
               />
               <button
                 type="submit"
-                className="bg-primary-button hover:bg-primary-dark text-white px-5 py-2 rounded-lg font-semibold transition-colors"
+                className="bg-primary-button hover:bg-primary-dark text-white px-5 py-2 rounded-lg"
                 disabled={submitting[task._id]}
               >
                 {submitting[task._id] ? "Submitting..." : "Submit"}
               </button>
             </form>
-          ) : task.status === "completed" ? (
-            <div className="flex flex-col gap-3">
-              <div className="text-green-600 font-semibold text-center">
-                ✅ Task Completed
-              </div>
-              <button
-                onClick={() => (window.location.href = "/certificates")}
-                className="bg-primary-button hover:bg-primary-dark text-white px-5 py-2 rounded-lg font-semibold "
-              >
-                📄 Download Certificate
-              </button>
-            </div>
           ) : (
             <div className="text-yellow-600 font-semibold text-center mt-4">
               Link Submitted - Awaiting Review
@@ -171,177 +196,73 @@ const Tasks = () => {
     <div>
       <Helmet>
         <title>Tasks - Hubinity</title>
-        <meta name="description" content="Browse and manage tasks" />
       </Helmet>
 
       <div className="min-h-screen bg-gray-50 flex flex-col items-center py-8">
         {loading ? (
           <div>Loading...</div>
-        ) : user?.userType === "startup" ? (
-          <>
-            <h3 className="text-2xl font-bold mb-4 text-primary-dark">
-              Your Posted Tasks
-            </h3>
-            {allTasks.filter((task) => task.startup?._id === user._id)
-              .length === 0 ? (
-              <div className="text-gray-500 mb-8">No tasks posted by you.</div>
-            ) : (
-              <div className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-12 py-4">
-                {allTasks
-                  .filter((task) => task.startup?._id === user._id)
-                  .map((task) => (
-                    <div
-                      key={task._id}
-                      className="bg-white rounded-3xl shadow-xl border border-gray-200 hover:shadow-2xl transition-shadow p-8 flex flex-col justify-between min-h-[320px] relative group"
-                      style={{ minHeight: 320 }}
-                    >
-                      <div>
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="font-bold text-2xl text-primary-dark flex-1 truncate">
-                            {task.title}
-                          </div>
-                          <span
-                            className={`text-xs px-4 py-1 rounded-full font-bold ml-2 shadow group-hover:bg-blue-200 group-hover:text-blue-900 transition-colors absolute top-6 right-6 ${
-                              task.status === "completed"
-                                ? "bg-green-200 text-green-700 border border-green-400"
-                                : task.status === "open"
-                                ? "bg-blue-100 text-blue-700"
-                                : task.status === "submitted"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-gray-100 text-gray-700"
-                            }`}
-                          >
-                            {task.status}
-                          </span>
-                        </div>
-                        <div className="text-gray-700 mb-3 text-base line-clamp-3">
-                          {task.description}
-                        </div>
-                        <div className="flex flex-wrap gap-3 mb-3">
-                          <span className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded">
-                            Category: {task.category}
-                          </span>
-                          <span className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded">
-                            Skills: {task.skills?.join(", ")}
-                          </span>
-                        </div>
-                        <div className="text-xs text-gray-500 mb-1">
-                          Deadline:{" "}
-                          <span className="font-medium">
-                            {new Date(task.deadline).toLocaleDateString()}
-                          </span>
-                        </div>
-                        {task.assignedStudent && (
-                          <div className="text-xs text-blue-700 mt-1">
-                            Assigned to:{" "}
-                            <span className="font-semibold">
-                              {task.assignedStudent.firstName}{" "}
-                              {task.assignedStudent.lastName}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </>
         ) : (
           <>
-            {/* Assigned Tasks */}
-            <h3 className="text-2xl font-bold mb-4 text-primary-dark">
-              Tasks Assigned to You
-            </h3>
-            {assignedTasks.length === 0 ? (
-              <div className="text-gray-500 mb-8">No assigned tasks found.</div>
-            ) : (
-              <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                {[...assignedTasks]
-                  .sort((a, b) => {
-                    if (a.status === "open" && b.status !== "open") return -1;
-                    if (a.status !== "open" && b.status === "open") return 1;
-                    return 0;
-                  })
-                  .map((task) => renderTaskCard(task, true))}
-              </div>
-            )}
+            {/* Filters */}
+            <div className="flex flex-wrap gap-4 mb-6">
+              <input
+                type="text"
+                placeholder="Search tasks..."
+                className="border border-gray-300 rounded-lg px-4 py-2"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="border px-3 py-2 rounded-lg"
+              >
+                <option value="">All Categories</option>
+                <option value="development">Development</option>
+                <option value="design">Design</option>
+                <option value="marketing">Marketing</option>
+              </select>
+              <input
+                type="date"
+                value={deadlineFilter}
+                onChange={(e) => setDeadlineFilter(e.target.value)}
+                className="border px-3 py-2 rounded-lg"
+              />
+              <select
+                value={startupFilter}
+                onChange={(e) => setStartupFilter(e.target.value)}
+                className="border px-3 py-2 rounded-lg"
+              >
+                <option value="">All</option>
+                <option value="true">Startup</option>
+                <option value="false">Non-Startup</option>
+              </select>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="border px-3 py-2 rounded-lg"
+              >
+                <option value="">Sort By</option>
+                <option value="deadline">Deadline</option>
+                <option value="title">Title</option>
+              </select>
+            </div>
 
-            {/* All Tasks */}
-            <h3 className="text-2xl font-bold mb-4 text-primary-dark">
-              All Tasks Posted by Startups
-            </h3>
-            {(() => {
-              // Only show tasks that are open and not assigned to this student
-              const assignedIds = new Set(assignedTasks.map((t) => t._id));
-              const openTasks = allTasks.filter(
-                (task) =>
-                  task.status === "open" &&
-                  (!task.assignedStudent || !assignedIds.has(task._id))
-              );
-              return openTasks.length === 0 ? (
-                <div className="text-gray-500">No tasks found.</div>
-              ) : (
-                <div className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-12 py-4">
-                  {openTasks.map((task) => (
-                    <div
-                      key={task._id}
-                      className="bg-white rounded-3xl shadow-xl border border-gray-200 hover:shadow-2xl transition-shadow p-8 flex flex-col justify-between min-h-[320px] relative group"
-                      style={{ minHeight: 320 }}
-                    >
-                      <div>
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="font-bold text-2xl text-primary-dark flex-1 truncate">
-                            {task.title}
-                          </div>
-                          <span className="text-xs px-4 py-1 rounded-full font-bold ml-2 bg-blue-100 text-blue-700 shadow group-hover:bg-blue-200 group-hover:text-blue-900 transition-colors absolute top-6 right-6">
-                            Open
-                          </span>
-                        </div>
-                        <div className="text-gray-700 mb-3 text-base line-clamp-3">
-                          {task.description}
-                        </div>
-                        <div className="flex flex-wrap gap-3 mb-3">
-                          <span className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded">
-                            Category: {task.category}
-                          </span>
-                          <span className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded">
-                            Skills: {task.skills?.join(", ")}
-                          </span>
-                        </div>
-                        <div className="text-xs text-gray-500 mb-1">
-                          Deadline:{" "}
-                          <span className="font-medium">
-                            {new Date(task.deadline).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <div className="text-xs text-gray-600 mt-2">
-                          Posted by:{" "}
-                          <span className="font-semibold">
-                            {task.startup?.companyName || "Unknown"}
-                          </span>
-                          {task.startup?.email && (
-                            <span className="ml-2 text-gray-500">
-                              ({task.startup.email})
-                            </span>
-                          )}
-                        </div>
-                        {/* Chat button for startup */}
-                        {task.startup?._id && (
-                          <button
-                            className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                            onClick={() =>
-                              (window.location.href = `/messages?startupId=${task.startup._id}`)
-                            }
-                          >
-                            Chat with {task.startup.companyName}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
+            {/* Assigned Tasks */}
+            <h3 className="text-2xl font-bold mb-4">Assigned to You</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filterAndSortTasks(assignedTasks).map((task) =>
+                renderTaskCard(task, true)
+              )}
+            </div>
+
+            {/* All Open Tasks */}
+            <h3 className="text-2xl font-bold mt-8 mb-4">All Open Tasks</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filterAndSortTasks(
+                allTasks.filter((t) => t.status === "open")
+              ).map((task) => renderTaskCard(task, false))}
+            </div>
           </>
         )}
       </div>

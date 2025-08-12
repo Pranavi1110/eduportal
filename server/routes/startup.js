@@ -178,7 +178,77 @@ router.post("/tasks/:taskId/approve", verifyJWT, async (req, res) => {
 
     submission.status = approve ? "approved" : "rejected";
     await task.save();
-    res.json({ message: approve ? "Task approved" : "Task rejected" });
+
+    // Only on approval: mark task as completed, generate certificate, notify student
+    if (approve) {
+      // Mark task as completed for this student
+      task.status = "completed";
+      task.completedAt = new Date();
+      await task.save();
+
+      // Generate certificate
+      const studentId = submission.student;
+      const student = await require("../models/User").findById(studentId);
+      const Certificate = require("../models/Certificate");
+      const certificateGenerator = require("../services/certificateGenerator");
+      let studentName = student.firstName && student.lastName ? `${student.firstName} ${student.lastName}` : (student.firstName || student.lastName || student.username || student.email.split("@")[0] || "Student");
+      let startupName = task.startup?.companyName || task.startup?.firstName || task.startup?.email?.split("@")[0] || "Unknown Company";
+      const certificateData = {
+        studentName,
+        taskTitle: task.title,
+        startupName,
+        completionDate: task.completedAt,
+        certificateNumber: `HUB-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        skills: task.skills || [],
+      };
+      const certificateFile = await certificateGenerator.generateCertificate(certificateData);
+      const certificate = new Certificate({
+        student: studentId,
+        startup: task.startup?._id,
+        task: task._id,
+        title: task.title,
+        description: `Certificate for completing ${task.title}`,
+        skills: task.skills,
+        certificateNumber: certificateData.certificateNumber,
+        issuedAt: new Date(),
+        pdfUrl: `/api/student/certificates/${certificateFile.filename}`,
+        metadata: {
+          taskTitle: task.title,
+          taskCategory: task.category,
+          completionDate: task.completedAt,
+          hoursWorked: task.estimatedHours || 0,
+        },
+      });
+      await certificate.save();
+      if (!student.certificates) student.certificates = [];
+      student.certificates.push(certificate._id);
+      await student.save();
+
+      // Create notification for certificate generation
+      const Notification = require("../models/Notification");
+      const notification = new Notification({
+        recipient: studentId,
+        sender: task.startup?._id,
+        type: "certificate",
+        message: `Congratulations! Your certificate for "${task.title}" has been generated.`,
+        link: "/certificates",
+        read: false,
+      });
+      await notification.save();
+    } else {
+      // If rejected, notify student
+      const Notification = require("../models/Notification");
+      const notification = new Notification({
+        recipient: submission.student,
+        sender: task.startup?._id,
+        type: "task",
+        message: `Your submission for "${task.title}" was rejected by the startup."`,
+        link: "/tasks",
+        read: false,
+      });
+      await notification.save();
+    }
+    res.json({ message: approve ? "Task approved and certificate generated" : "Task rejected and student notified" });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }

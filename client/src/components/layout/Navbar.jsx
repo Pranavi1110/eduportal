@@ -79,7 +79,7 @@ const Navbar = () => {
                 </Link>
               ))}
 
-              {/* Certificates link only for non-startup users */}
+              {/* Certificates link only for non-startup users; Submissions link for startups */}
               {user?.userType !== "startup" && (
                 <Link
                   key="Certificates"
@@ -91,6 +91,19 @@ const Navbar = () => {
                   }`}
                 >
                   Certificates
+                </Link>
+              )}
+              {user?.userType === "startup" && (
+                <Link
+                  key="Submissions"
+                  to="/startup/submissions"
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive("/startup/submissions")
+                      ? "text-primary-button bg-primary-card"
+                      : "text-gray-600 hover:text-primary-dark hover:bg-gray-50"
+                  }`}
+                >
+                  Submissions
                 </Link>
               )}
             </div>
@@ -111,7 +124,9 @@ const Navbar = () => {
                       <span className="text-sm font-medium text-primary-dark">
                         {user?.userType === "startup" && user?.companyName
                           ? user.companyName
-                          : `${user?.firstName || ""} ${user?.lastName || ""}`.trim()}
+                          : `${user?.firstName || ""} ${
+                              user?.lastName || ""
+                            }`.trim()}
                       </span>
                     </div>
                     <div className="relative">
@@ -209,7 +224,7 @@ const Navbar = () => {
               </Link>
             ))}
 
-            {/* Certificates link only for non-startup users (mobile) */}
+            {/* Certificates link only for non-startup users (mobile); Submissions link for startups */}
             {user?.userType !== "startup" && (
               <Link
                 key="Certificates"
@@ -225,6 +240,21 @@ const Navbar = () => {
                 Certificates
               </Link>
             )}
+            {user?.userType === "startup" && (
+              <Link
+                key="Submissions"
+                to="/startup/submissions"
+                className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
+                  isActive("/startup/submissions")
+                    ? "text-primary-button bg-primary-card"
+                    : "text-gray-600 hover:text-primary-dark hover:bg-gray-50"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Briefcase className="mr-3 h-5 w-5" />
+                Submissions
+              </Link>
+            )}
 
             {isAuthenticated ? (
               <div className="pt-4 pb-3 border-t border-gray-200">
@@ -238,7 +268,9 @@ const Navbar = () => {
                     <div className="text-base font-medium text-primary-dark">
                       {user?.userType === "startup" && user?.companyName
                         ? user.companyName
-                        : `${user?.firstName || ""} ${user?.lastName || ""}`.trim()}
+                        : `${user?.firstName || ""} ${
+                            user?.lastName || ""
+                          }`.trim()}
                     </div>
                     <div className="text-sm font-medium text-gray-500">
                       {user?.email}

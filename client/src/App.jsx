@@ -3,6 +3,7 @@ import Chat from "./pages/Chat";
 import StartupProfile from "./pages/startup/StartupProfile";
 import PostTask from "./pages/startup/PostTask";
 import BrowseStudents from "./pages/startup/BrowseStudents";
+import Submissions from "./pages/startup/Submissions";
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -221,6 +222,14 @@ const App = () => {
                   element={
                     <ProtectedRoute allowedUserTypes={["startup"]}>
                       <BrowseStudents />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/startup/submissions"
+                  element={
+                    <ProtectedRoute allowedUserTypes={["startup"]}>
+                      <Submissions />
                     </ProtectedRoute>
                   }
                 />

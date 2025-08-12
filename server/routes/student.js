@@ -148,159 +148,22 @@ router.post("/tasks/:taskId/submit-link", verifyJWT, async (req, res) => {
     });
     if (!task) return res.status(404).json({ error: "Task not found" });
 
-    // Only assigned student can submit
-    if (
-      !task.assignedStudent ||
-      task.assignedStudent.toString() !== req.user.id
-    ) {
-      return res
-        .status(403)
-        .json({ error: "Not authorized to submit for this task" });
+    // Allow any student to submit for any task
+    // Prevent duplicate submissions by same student for same task
+    if (task.submissions.some(s => s.student.toString() === req.user.id)) {
+      return res.status(400).json({ error: "You have already submitted for this task." });
     }
 
-    // Save submission as a deliverable
-    task.deliverables.push({
-      name: `Link Submission`,
-      description: `Student submitted a link`,
-      fileUrl: link,
+    // Add submission to submissions array as pending
+    task.submissions.push({
+      student: req.user.id,
+      link,
       submittedAt: new Date(),
-      isApproved: false,
+      status: "pending"
     });
-
-    // Mark task as completed
-    task.status = "completed";
-    task.completedAt = new Date();
     await task.save();
-
-    // Generate certificate automatically - Check if certificate already exists
-    try {
-      console.log("Starting certificate generation for task:", task._id);
-
-      // Check if certificate already exists for this task
-      const existingCertificate = await Certificate.findOne({
-        student: req.user.id,
-        task: task._id,
-      });
-
-      if (existingCertificate) {
-        console.log(
-          "Certificate already exists for this task, skipping generation"
-        );
-        return;
-      }
-
-      const user = await User.findById(req.user.id);
-      console.log("User found:", user._id);
-
-      // Get proper student name
-      let studentName = "Student";
-      if (user.firstName && user.lastName) {
-        studentName = `${user.firstName} ${user.lastName}`;
-      } else if (user.firstName) {
-        studentName = user.firstName;
-      } else if (user.lastName) {
-        studentName = user.lastName;
-      } else if (user.username) {
-        studentName = user.username;
-      } else if (user.email) {
-        studentName = user.email.split("@")[0]; // Use email prefix as name
-      }
-
-      // Better startup name retrieval
-      let startupName = "Unknown Company";
-      if (task.startup) {
-        if (task.startup.companyName && task.startup.companyName.trim()) {
-          startupName = task.startup.companyName.trim();
-        } else if (task.startup.firstName && task.startup.lastName) {
-          startupName = `${task.startup.firstName} ${task.startup.lastName}`;
-        } else if (task.startup.firstName && task.startup.firstName.trim()) {
-          startupName = task.startup.firstName.trim();
-        } else if (task.startup.email) {
-          startupName = task.startup.email.split("@")[0]; // Use email prefix as company name
-        }
-      }
-
-      // If still unknown, try to get from task metadata or use a generic name
-      if (
-        startupName === "Unknown Company" ||
-        !startupName ||
-        startupName.trim() === ""
-      ) {
-        startupName = "Unknown Company";
-      }
-
-      console.log("Student name:", studentName);
-      console.log("Startup name:", startupName);
-
-      const certificateData = {
-        studentName,
-        taskTitle: task.title,
-        startupName,
-        completionDate: task.completedAt,
-        certificateNumber: `HUB-${Date.now()}-${Math.floor(
-          Math.random() * 1000
-        )}`,
-        skills: task.skills || [],
-      };
-
-      console.log("Certificate data:", certificateData);
-
-      const certificateFile = await certificateGenerator.generateCertificate(
-        certificateData
-      );
-      console.log("Certificate file generated:", certificateFile);
-
-      // Create certificate record in database
-      const certificate = new Certificate({
-        student: req.user.id,
-        startup: task.startup?._id,
-        task: task._id,
-        title: task.title,
-        description: `Certificate for completing ${task.title}`,
-        skills: task.skills,
-        certificateNumber: certificateData.certificateNumber,
-        issuedAt: new Date(),
-        pdfUrl: `/api/student/certificates/${certificateFile.filename}`,
-        metadata: {
-          taskTitle: task.title,
-          taskCategory: task.category,
-          completionDate: task.completedAt,
-          hoursWorked: task.estimatedHours || 0,
-        },
-      });
-
-      await certificate.save();
-      console.log("Certificate saved to database:", certificate._id);
-
-      // Add certificate to user's certificates array
-      if (!user.certificates) user.certificates = [];
-      user.certificates.push(certificate._id);
-      await user.save();
-      console.log("Certificate added to user profile");
-
-      // Create notification for certificate generation
-      const notification = new Notification({
-        recipient: req.user.id,
-        sender: task.startup?._id,
-        type: "certificate",
-        message: `Congratulations! Your certificate for "${task.title}" has been generated.`,
-        link: "/certificates",
-        read: false,
-      });
-      await notification.save();
-      console.log("Notification created for certificate");
-
-      console.log(
-        `Certificate generated successfully for task ${task._id}: ${certificateFile.filename}`
-      );
-    } catch (certError) {
-      console.error("Error generating certificate:", certError);
-      console.error("Error stack:", certError.stack);
-      // Don't fail the task submission if certificate generation fails
-    }
-
     res.json({
-      message: "Link submitted successfully and certificate generated",
+      message: "Link submitted successfully and pending approval."
     });
   } catch (err) {
     console.error("Error in task submission:", err);
