@@ -5,6 +5,7 @@ const Task = require("../models/Task");
 const Student = require("../models/Student");
 const Certificate = require("../models/Certificate");
 const User = require("../models/User");
+const Notification = require("../models/Notification");
 
 // Update startup profile
 router.put("/profile", verifyJWT, async (req, res) => {
@@ -37,9 +38,79 @@ router.get("/dashboard", verifyJWT, async (req, res) => {
   }
 });
 
+// Get tasks posted by particular startup
+router.get("/tasks", verifyJWT, async (req, res) => {
+  try {
+    console.log("Startup tasks request from user:", req.user.id);
+
+    const { status, category } = req.query;
+    let query = { startup: req.user.id };
+
+    if (status) {
+      query.status = status;
+    }
+
+    if (category) {
+      query.category = category;
+    }
+
+    console.log("Query:", query);
+
+    let tasks = await Task.find(query)
+      .populate("assignedStudent", "firstName lastName email username")
+      .populate("submissions.student", "firstName lastName email username")
+      .sort({ createdAt: -1 });
+
+    console.log(`Found ${tasks.length} tasks for startup ${req.user.id}`);
+
+    // Manually populate submissions.student for each task
+    for (let task of tasks) {
+      if (task.submissions && task.submissions.length > 0) {
+        for (let submission of task.submissions) {
+          if (submission.student && typeof submission.student === "string") {
+            try {
+              const student = await User.findById(submission.student).select(
+                "firstName lastName email username"
+              );
+              submission.student = student;
+            } catch (err) {
+              console.error("Error populating student:", err);
+            }
+          }
+        }
+      }
+    }
+
+    // Debug: Check if submissions are properly populated
+    if (tasks.length > 0) {
+      console.log(
+        "Sample task submissions:",
+        JSON.stringify(tasks[0].submissions, null, 2)
+      );
+      if (tasks[0].submissions && tasks[0].submissions.length > 0) {
+        console.log(
+          "Sample submission student data:",
+          JSON.stringify(tasks[0].submissions[0].student, null, 2)
+        );
+        console.log("Student type:", typeof tasks[0].submissions[0].student);
+        console.log(
+          "Student keys:",
+          Object.keys(tasks[0].submissions[0].student || {})
+        );
+      }
+    }
+
+    return res.json(tasks);
+  } catch (err) {
+    console.error("Error fetching startup tasks:", err);
+    return res
+      .status(500)
+      .json({ error: "Server error", details: err.message });
+  }
+});
+
 // Get notifications for startup
 router.get("/notifications", verifyJWT, async (req, res) => {
-  const Notification = require("../models/Notification");
   try {
     const notifications = await Notification.find({
       recipient: req.user.id,
@@ -69,15 +140,17 @@ router.get("/notifications", verifyJWT, async (req, res) => {
       }
       return { ...notif.toObject(), senderName };
     });
-    res.json(notificationsWithName);
+    return res.json(notificationsWithName);
   } catch (err) {
-    res.status(500).json({ error: "Server error" });
+    console.error("Error fetching startup notifications:", err);
+    return res
+      .status(500)
+      .json({ error: "Server error", details: err.message });
   }
 });
 
 // Mark a notification as read for startup
 router.patch("/notifications/:id/read", verifyJWT, async (req, res) => {
-  const Notification = require("../models/Notification");
   try {
     const notif = await Notification.findOneAndUpdate(
       { _id: req.params.id, recipient: req.user.id },
@@ -86,9 +159,12 @@ router.patch("/notifications/:id/read", verifyJWT, async (req, res) => {
     );
     if (!notif)
       return res.status(404).json({ error: "Notification not found" });
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: "Server error" });
+    console.error("Error marking notification as read:", err);
+    return res
+      .status(500)
+      .json({ error: "Server error", details: err.message });
   }
 });
 
@@ -99,7 +175,6 @@ router.post("/tasks", verifyJWT, async (req, res) => {
     await task.save();
 
     if (task.assignedStudent) {
-      const Notification = require("../models/Notification");
       const notif = new Notification({
         recipient: task.assignedStudent,
         sender: req.user.id,
@@ -110,10 +185,12 @@ router.post("/tasks", verifyJWT, async (req, res) => {
       await notif.save();
     }
 
-    res.status(201).json(task);
+    return res.status(201).json(task);
   } catch (err) {
     console.error("Error creating task:", err);
-    res.status(500).json({ error: "Server error", details: err.message });
+    return res
+      .status(500)
+      .json({ error: "Server error", details: err.message });
   }
 });
 
@@ -166,9 +243,53 @@ router.post("/tasks/:taskId/assign", verifyJWT, async (req, res) => {
 // Approve or reject task submission
 router.post("/tasks/:taskId/approve", verifyJWT, async (req, res) => {
   try {
-    const { studentId, approve } = req.body;
-    const task = await Task.findById(req.params.taskId);
+    const { studentId, approve, reviewNotes } = req.body;
+
+    console.log("Task approval request:", {
+      taskId: req.params.taskId,
+      studentId,
+      approve,
+      reviewNotes,
+    });
+
+    // Find task and populate startup field
+    const task = await Task.findById(req.params.taskId).populate({
+      path: "startup",
+      select: "companyName firstName lastName email",
+      model: "User",
+    });
+
     if (!task) return res.status(404).json({ error: "Task not found" });
+
+    console.log("Task found:", {
+      taskId: task._id,
+      startupId: task.startup?._id,
+      currentUser: req.user.id,
+    });
+
+    // Check if startup exists
+    if (!task.startup) {
+      return res
+        .status(400)
+        .json({ error: "Task startup information not found" });
+    }
+
+    // Verify this startup owns the task
+    if (task.startup._id.toString() !== req.user.id) {
+      return res
+        .status(403)
+        .json({ error: "Not authorized to approve this task" });
+    }
+
+    console.log(
+      "Looking for submission from student:",
+      studentId,
+      "Available submissions:",
+      task.submissions.map((s) => ({
+        student: s.student.toString(),
+        status: s.status,
+      }))
+    );
 
     const submission = task.submissions.find(
       (s) => s.student.toString() === studentId
@@ -176,35 +297,64 @@ router.post("/tasks/:taskId/approve", verifyJWT, async (req, res) => {
     if (!submission)
       return res.status(404).json({ error: "Submission not found" });
 
-    submission.status = approve ? "approved" : "rejected";
-    await task.save();
+    console.log("Submission found:", {
+      studentId: submission.student.toString(),
+      status: submission.status,
+    });
 
-    // Only on approval: mark task as completed, generate certificate, notify student
     if (approve) {
+      submission.status = "approved";
+      submission.reviewedAt = new Date();
+      submission.reviewNotes = reviewNotes || "";
+
       // Mark task as completed for this student
       task.status = "completed";
       task.completedAt = new Date();
+      task.assignedStudent = studentId;
+
       await task.save();
 
       // Generate certificate
-      const studentId = submission.student;
-      const student = await require("../models/User").findById(studentId);
-      const Certificate = require("../models/Certificate");
+      const submissionStudentId = submission.student;
+      const student = await User.findById(submissionStudentId);
+      if (!student) {
+        return res.status(404).json({ error: "Student not found" });
+      }
+
       const certificateGenerator = require("../services/certificateGenerator");
-      let studentName = student.firstName && student.lastName ? `${student.firstName} ${student.lastName}` : (student.firstName || student.lastName || student.username || student.email.split("@")[0] || "Student");
-      let startupName = task.startup?.companyName || task.startup?.firstName || task.startup?.email?.split("@")[0] || "Unknown Company";
+
+      let studentName =
+        student.firstName && student.lastName
+          ? `${student.firstName} ${student.lastName}`
+          : student.firstName ||
+            student.lastName ||
+            student.username ||
+            student.email.split("@")[0] ||
+            "Student";
+
+      let startupName =
+        task.startup.companyName ||
+        task.startup.firstName ||
+        task.startup.email?.split("@")[0] ||
+        "Unknown Company";
+
       const certificateData = {
         studentName,
         taskTitle: task.title,
         startupName,
         completionDate: task.completedAt,
-        certificateNumber: `HUB-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        certificateNumber: `HUB-${Date.now()}-${Math.floor(
+          Math.random() * 1000
+        )}`,
         skills: task.skills || [],
       };
-      const certificateFile = await certificateGenerator.generateCertificate(certificateData);
+
+      const certificateFile = await certificateGenerator.generateCertificate(
+        certificateData
+      );
       const certificate = new Certificate({
-        student: studentId,
-        startup: task.startup?._id,
+        student: submissionStudentId,
+        startup: task.startup._id,
         task: task._id,
         title: task.title,
         description: `Certificate for completing ${task.title}`,
@@ -220,15 +370,15 @@ router.post("/tasks/:taskId/approve", verifyJWT, async (req, res) => {
         },
       });
       await certificate.save();
+
       if (!student.certificates) student.certificates = [];
       student.certificates.push(certificate._id);
       await student.save();
 
       // Create notification for certificate generation
-      const Notification = require("../models/Notification");
       const notification = new Notification({
-        recipient: studentId,
-        sender: task.startup?._id,
+        recipient: submissionStudentId,
+        sender: task.startup._id,
         type: "certificate",
         message: `Congratulations! Your certificate for "${task.title}" has been generated.`,
         link: "/certificates",
@@ -236,19 +386,125 @@ router.post("/tasks/:taskId/approve", verifyJWT, async (req, res) => {
       });
       await notification.save();
     } else {
+      submission.status = "rejected";
+      submission.reviewedAt = new Date();
+      submission.reviewNotes = reviewNotes || "";
+
+      console.log("Before status update - Task status:", task.status);
+      console.log(
+        "Before status update - All submissions:",
+        task.submissions.map((s) => ({
+          student: s.student.toString(),
+          status: s.status,
+        }))
+      );
+
+      // Update task status based on submission statuses
+      const hasPending = task.submissions.some(
+        (sub) => sub.status === "pending"
+      );
+      const hasUnderReview = task.submissions.some(
+        (sub) => sub.status === "under-review"
+      );
+      const hasApproved = task.submissions.some(
+        (sub) => sub.status === "approved"
+      );
+      const allRejected = task.submissions.every(
+        (sub) => sub.status === "rejected"
+      );
+
+      console.log("Status checks:", {
+        hasPending,
+        hasUnderReview,
+        hasApproved,
+        allRejected,
+      });
+
+      if (hasApproved) {
+        task.status = "completed";
+      } else if (hasUnderReview) {
+        task.status = "under-review";
+      } else if (hasPending) {
+        task.status = "submitted";
+      } else if (allRejected) {
+        task.status = "rejected";
+      }
+
+      console.log("After status update - Task status:", task.status);
+      console.log(
+        "Task status updated to:",
+        task.status,
+        "based on submissions:",
+        task.submissions.map((s) => s.status)
+      );
+
+      await task.save();
+
       // If rejected, notify student
-      const Notification = require("../models/Notification");
+      console.log(
+        "Creating rejection notification for student:",
+        submission.student
+      );
       const notification = new Notification({
         recipient: submission.student,
-        sender: task.startup?._id,
+        sender: task.startup._id,
         type: "task",
-        message: `Your submission for "${task.title}" was rejected by the startup."`,
+        message: `Your submission for "${task.title}" was rejected by the startup.`,
         link: "/tasks",
         read: false,
       });
       await notification.save();
+      console.log(
+        "Rejection notification created successfully:",
+        notification._id
+      );
     }
-    res.json({ message: approve ? "Task approved and certificate generated" : "Task rejected and student notified" });
+
+    // Send success response
+    return res.json({
+      message: approve
+        ? "Task approved and certificate generated"
+        : "Task rejected and student notified",
+      success: true,
+      taskId: task._id,
+      studentId: studentId,
+    });
+  } catch (err) {
+    console.error("Error in task approval:", err);
+    return res
+      .status(500)
+      .json({ error: "Server error", details: err.message });
+  }
+});
+
+// Move submission to under review
+router.post("/tasks/:taskId/review", verifyJWT, async (req, res) => {
+  try {
+    const { studentId } = req.body;
+    const task = await Task.findById(req.params.taskId);
+    if (!task) return res.status(404).json({ error: "Task not found" });
+
+    const submission = task.submissions.find(
+      (s) => s.student.toString() === studentId
+    );
+    if (!submission)
+      return res.status(404).json({ error: "Submission not found" });
+
+    submission.status = "under-review";
+    await task.save();
+
+    // Notify student that submission is under review
+    const notification = new Notification({
+      recipient: studentId,
+      sender: task.startup?._id,
+      type: "task",
+      message: `Your submission for "${task.title}" is now under review.`,
+      link: "/tasks",
+      read: false,
+    });
+    await notification.save();
+
+    res.json({ message: "Submission moved to under review" });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }

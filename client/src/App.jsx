@@ -4,6 +4,7 @@ import StartupProfile from "./pages/startup/StartupProfile";
 import PostTask from "./pages/startup/PostTask";
 import BrowseStudents from "./pages/startup/BrowseStudents";
 import Submissions from "./pages/startup/Submissions";
+import StartupTasks from "./pages/startup/StartupTasks";
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -230,6 +231,14 @@ const App = () => {
                   element={
                     <ProtectedRoute allowedUserTypes={["startup"]}>
                       <Submissions />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/startup/tasks"
+                  element={
+                    <ProtectedRoute allowedUserTypes={["startup"]}>
+                      <StartupTasks />
                     </ProtectedRoute>
                   }
                 />

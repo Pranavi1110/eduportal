@@ -90,6 +90,56 @@ router.post("/send", verifyJWT, async (req, res) => {
   }
 });
 
+// Send a message to a specific recipient
+router.post("/:recipientId", verifyJWT, async (req, res) => {
+  try {
+    const { recipientId } = req.params;
+    const { message } = req.body;
+    
+    if (!message || !message.trim()) {
+      return res.status(400).json({ error: "Message content required" });
+    }
+
+    const newMessage = new Message({
+      sender: req.user.id,
+      receiver: recipientId,
+      content: message.trim(),
+    });
+    await newMessage.save();
+
+    const Notification = require("../models/Notification");
+
+    // Get sender's display name
+    const senderUser = await User.findById(req.user.id);
+    let senderName = "";
+    if (senderUser) {
+      if (senderUser.firstName || senderUser.lastName) {
+        senderName = `${senderUser.firstName || ""} ${senderUser.lastName || ""}`.trim();
+      } else if (senderUser.username) {
+        senderName = senderUser.username;
+      } else if (senderUser.email) {
+        senderName = senderUser.email;
+      } else {
+        senderName = req.user.id;
+      }
+    }
+
+    // Create notification
+    const notif = new Notification({
+      recipient: recipientId,
+      sender: req.user.id,
+      type: "message",
+      message: `New message from ${senderName}`,
+      link: `/chat/${req.user.id}`,
+    });
+    await notif.save();
+
+    res.status(201).json(newMessage);
+  } catch (err) {
+    res.status(500).json({ error: "Server error", details: err.message });
+  }
+});
+
 
 // Get all messages between logged-in user and another user
 router.get("/:userId", verifyJWT, async (req, res) => {

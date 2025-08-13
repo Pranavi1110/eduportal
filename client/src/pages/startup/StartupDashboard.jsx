@@ -30,18 +30,21 @@ const StartupDashboard = () => {
   // Fetch all submissions for this startup's tasks
   const fetchAllSubmissions = async () => {
     try {
-      const res = await api.get("/startup/dashboard");
+      // Use /startup/tasks instead of /startup/dashboard to get properly populated submissions
+      const res = await api.get("/startup/tasks");
       // Flatten all submissions from all tasks
-      const allSubs = (res.data.tasks || []).flatMap((task) =>
+      const allSubs = (res.data || []).flatMap((task) =>
         (task.submissions || []).map((sub) => ({
           ...sub,
           taskTitle: task.title,
           taskId: task._id,
+          taskStatus: task.status,
           student: sub.student,
         }))
       );
       setSubmissions(allSubs);
     } catch (err) {
+      console.error("Error fetching submissions:", err);
       setSubmissions([]);
     }
   };
@@ -301,7 +304,7 @@ const StartupDashboard = () => {
                               {typeof sub.student === "object"
                                 ? `${sub.student.firstName || ""} ${
                                     sub.student.lastName || ""
-                                  }`
+                                  }`.trim() || sub.student.username || sub.student.email?.split('@')[0] || "Unknown Student"
                                 : sub.student}
                             </td>
                             <td className="px-4 py-2">
@@ -314,9 +317,14 @@ const StartupDashboard = () => {
                                 View
                               </a>
                             </td>
-                            <td className="px-4 py-2 capitalize">
-                              {sub.status || "pending"}
-                            </td>
+                                                         <td className="px-4 py-2 capitalize">
+                               <div>
+                                 <div className="font-medium">{sub.status || "pending"}</div>
+                                 <div className="text-xs text-gray-500">
+                                   Task: {sub.taskStatus || "unknown"}
+                                 </div>
+                               </div>
+                             </td>
                             <td className="px-4 py-2">
                               {sub.status === "pending" && (
                                 <>
@@ -438,10 +446,10 @@ const StartupDashboard = () => {
                 <div className="space-y-3">
                   <button
                     className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
-                    onClick={() => navigate("/startup/post-task")}
+                    onClick={() => navigate("/startup/tasks")}
                   >
                     <Briefcase className="w-5 h-5 text-primary-button mr-3" />
-                    <span>Post New Task</span>
+                    <span>View My Tasks</span>
                   </button>
                   <button
                     className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"

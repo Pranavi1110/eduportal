@@ -62,9 +62,12 @@ const taskSchema = new mongoose.Schema(
         "open",
         "assigned",
         "in-progress",
+        "submitted",
+        "under-review",
         "review",
         "completed",
         "cancelled",
+        "rejected",
       ],
       default: "open",
     },
@@ -75,7 +78,7 @@ const taskSchema = new mongoose.Schema(
     },
     startup: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Startup",
+      ref: "User",
     },
     assignedStudent: {
       type: mongoose.Schema.Types.ObjectId,
@@ -159,8 +162,15 @@ const taskSchema = new mongoose.Schema(
         },
         status: {
           type: String,
-          enum: ["pending", "approved", "rejected"],
+          enum: ["pending", "under-review", "approved", "rejected"],
           default: "pending",
+        },
+        reviewedAt: {
+          type: Date,
+        },
+        reviewNotes: {
+          type: String,
+          maxlength: [500, "Review notes cannot be more than 500 characters"],
         },
       },
     ],

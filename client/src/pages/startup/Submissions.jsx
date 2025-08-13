@@ -14,17 +14,22 @@ const Submissions = () => {
   const fetchAllSubmissions = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/startup/dashboard");
-      const allSubs = (res.data.tasks || []).flatMap((task) =>
+      // Use /startup/tasks instead of /startup/dashboard to get properly populated submissions
+      const res = await api.get("/startup/tasks");
+      const allSubs = (res.data || []).flatMap((task) =>
         (task.submissions || []).map((sub) => ({
           ...sub,
           taskTitle: task.title,
           taskId: task._id,
+          taskStatus: task.status,
           student: sub.student,
         }))
       );
+      console.log("Submissions data:", allSubs);
+      console.log("Raw task data:", res.data);
       setSubmissions(allSubs);
     } catch (err) {
+      console.error("Error fetching submissions:", err);
       setSubmissions([]);
     }
     setLoading(false);
@@ -71,7 +76,7 @@ const Submissions = () => {
                     {typeof sub.student === "object"
                       ? `${sub.student.firstName || ""} ${
                           sub.student.lastName || ""
-                        }`
+                        }`.trim() || sub.student.username || sub.student.email?.split('@')[0] || "Unknown Student"
                       : sub.student}
                   </td>
                   <td className="px-4 py-2">
@@ -85,7 +90,12 @@ const Submissions = () => {
                     </a>
                   </td>
                   <td className="px-4 py-2 capitalize">
-                    {sub.status || "pending"}
+                    <div>
+                      <div className="font-medium">{sub.status || "pending"}</div>
+                      <div className="text-xs text-gray-500">
+                        Task: {sub.taskStatus || "unknown"}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-2">
                     {sub.status === "pending" && (
