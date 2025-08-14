@@ -104,7 +104,7 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="grid-responsive gap-responsive place-items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-responsive justify-items-center max-w-6xl mx-auto">
             {features.map((feature, index) => (
               <div
                 key={index}

@@ -7,13 +7,7 @@ import { Helmet } from "react-helmet-async";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
-import {
-  Building,
-  Users,
-  Briefcase,
-  Plus,
-  Eye,
-} from "lucide-react";
+import { Building, Users, Briefcase, Plus, Eye } from "lucide-react";
 
 const StartupDashboard = () => {
   const { user, authData } = useAuth();
@@ -164,7 +158,9 @@ const StartupDashboard = () => {
                   {showNotifications && (
                     <div className="absolute top-12 right-0 bg-primary-white border rounded-xl shadow-elegant w-80 z-50 p-4">
                       <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-lg font-semibold text-primary-dark">Notifications</h3>
+                        <h3 className="text-lg font-semibold text-primary-dark">
+                          Notifications
+                        </h3>
                         <button
                           className="text-gray-500 hover:text-primary-dark text-xl font-bold px-2"
                           onClick={() => setShowNotifications(false)}
@@ -200,7 +196,9 @@ const StartupDashboard = () => {
                                             notif._id
                                           );
                                           setNotifications((prev) =>
-                                            prev.filter((n) => n._id !== notif._id)
+                                            prev.filter(
+                                              (n) => n._id !== notif._id
+                                            )
                                           );
                                         }
                                         window.location.href = notif.link;
@@ -255,18 +253,20 @@ const StartupDashboard = () => {
 
         <div className="container-responsive section-padding">
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="w-full flex justify-center gap-8 mb-8">
             {stats.map((stat, index) => (
-              <div key={index} className="card-elegant">
+              <div key={index} className="card-elegant w-80">
                 <div className="flex items-center">
-                  <div className={`p-3 rounded-lg bg-primary-card ${stat.color}`}>
-                    <stat.icon className="w-6 h-6" />
+                  <div
+                    className={`p-3 rounded-lg bg-primary-card ${stat.color}`}
+                  >
+                    <stat.icon className="w-8 h-8" />
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">
+                    <p className="text-lg font-medium text-gray-600">
                       {stat.label}
                     </p>
-                    <p className="text-2xl font-bold text-primary-dark">
+                    <p className="text-3xl font-bold text-primary-dark">
                       {stat.value}
                     </p>
                   </div>
@@ -290,10 +290,18 @@ const StartupDashboard = () => {
                       <thead>
                         <tr>
                           <th className="px-4 py-2 text-left text-sm">Task</th>
-                          <th className="px-4 py-2 text-left text-sm">Student</th>
-                          <th className="px-4 py-2 text-left text-sm">Submission Link</th>
-                          <th className="px-4 py-2 text-left text-sm">Status</th>
-                          <th className="px-4 py-2 text-left text-sm">Actions</th>
+                          <th className="px-4 py-2 text-left text-sm">
+                            Student
+                          </th>
+                          <th className="px-4 py-2 text-left text-sm">
+                            Submission Link
+                          </th>
+                          <th className="px-4 py-2 text-left text-sm">
+                            Status
+                          </th>
+                          <th className="px-4 py-2 text-left text-sm">
+                            Actions
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -331,7 +339,8 @@ const StartupDashboard = () => {
                               </div>
                             </td>
                             <td className="px-4 py-2">
-                              {(sub.status === "pending" || sub.status === "under-review") && (
+                              {(sub.status === "pending" ||
+                                sub.status === "under-review") && (
                                 <>
                                   <button
                                     className="btn-primary mr-2"
@@ -421,7 +430,8 @@ const StartupDashboard = () => {
                               {task.status.replace("-", " ")}
                             </span>
                             <span className="text-sm text-gray-600">
-                              Due: {new Date(task.deadline).toLocaleDateString()}
+                              Due:{" "}
+                              {new Date(task.deadline).toLocaleDateString()}
                             </span>
                           </div>
                         </div>
