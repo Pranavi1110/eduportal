@@ -439,7 +439,7 @@ const StartupDashboard = () => {
                           className="btn-ghost p-2"
                           onClick={() => navigate(`/startup/tasks/${task._id}`)}
                         >
-                          <Eye className="w-4 h-4" />
+                          {/* <Eye className="w-4 h-4" /> */}
                         </button>
                       </div>
                     </div>
