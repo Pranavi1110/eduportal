@@ -4,13 +4,13 @@ import { Mail, Phone, MapPin, Linkedin, Twitter, Facebook } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="bg-primary-banner text-primary-cta">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="bg-primary-banner text-primary-cta shadow-soft">
+      <div className="container-responsive section-padding-sm">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-responsive">
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-primary-button rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-primary-button rounded-lg flex items-center justify-center shadow-soft">
                 <span className="text-primary-dark font-bold text-sm">H</span>
               </div>
               <span className="text-2xl font-garamond font-bold">Hubinity</span>
@@ -46,7 +46,7 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+            <h3 className="text-lg font-garamond font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
                 <Link
@@ -85,7 +85,7 @@ const Footer = () => {
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
+            <h3 className="text-lg font-garamond font-semibold mb-4">Contact Us</h3>
             <ul className="space-y-3">
               <li className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-primary-button" />

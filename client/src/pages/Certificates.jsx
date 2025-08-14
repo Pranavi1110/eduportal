@@ -31,8 +31,8 @@ const Certificates = () => {
 
   if (user?.userType === "startup") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg text-gray-500">
+      <div className="min-h-screen bg-primary-card flex items-center justify-center">
+        <div className="text-lg text-gray-700">
           Certificates are only available for students.
         </div>
       </div>
@@ -69,8 +69,8 @@ const Certificates = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg text-gray-500">Loading certificates...</div>
+      <div className="min-h-screen bg-primary-card flex items-center justify-center">
+        <div className="text-lg text-gray-700">Loading certificates...</div>
       </div>
     );
   }
@@ -82,24 +82,22 @@ const Certificates = () => {
         <meta name="description" content="View and download certificates" />
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="card">
-            <h1 className="text-3xl font-garamond font-bold text-primary-dark mb-6">
-              My Certificates
-            </h1>
+      <div className="min-h-screen bg-primary-white section-padding">
+        <div className="container-responsive">
+          <div className="card-elegant">
+            <h1 className="section-title mb-6">My Certificates</h1>
 
             {certificates.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-gray-400 text-6xl mb-4">📜</div>
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                <h3 className="text-xl font-semibold text-primary-dark mb-2">
                   No certificates yet
                 </h3>
-                <p className="text-gray-500 mb-6">
+                <p className="text-gray-600 mb-6">
                   Complete tasks to earn certificates. Your certificates will
                   appear here once you finish projects.
                 </p>
-                <a href="/tasks" className="btn btn-primary">
+                <a href="/tasks" className="btn-primary">
                   View Available Tasks
                 </a>
               </div>
@@ -108,21 +106,21 @@ const Certificates = () => {
                 {certificates.map((certificate) => (
                   <div
                     key={certificate._id}
-                    className="bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+                    className="card p-6 hover:shadow-medium transition-shadow"
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-2">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 font-semibold">
+                        <div className="w-10 h-10 bg-primary-card rounded-full flex items-center justify-center">
+                          <span className="text-primary-dark font-semibold">
                             🏆
                           </span>
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">
+                          <h3 className="font-semibold text-primary-dark">
                             {certificate.metadata?.taskTitle ||
                               certificate.title}
                           </h3>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-600">
                             {certificate.startup?.companyName ||
                               certificate.startup?.firstName ||
                               "Unknown Company"}
@@ -152,13 +150,13 @@ const Certificates = () => {
                               .map((skill, index) => (
                                 <span
                                   key={index}
-                                  className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
+                                  className="px-2 py-1 bg-primary-card text-primary-dark text-xs rounded-full"
                                 >
                                   {skill}
                                 </span>
                               ))}
                             {certificate.skills.length > 3 && (
-                              <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                              <span className="px-2 py-1 bg-primary-card text-gray-600 text-xs rounded-full">
                                 +{certificate.skills.length - 3} more
                               </span>
                             )}
@@ -188,7 +186,7 @@ const Certificates = () => {
                       </div>
                     </div>
 
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                       <button
                         onClick={() =>
                           downloadCertificate(
@@ -196,11 +194,11 @@ const Certificates = () => {
                             certificate.certificateNumber
                           )
                         }
-                        className="btn btn-primary btn-sm"
+                        className="btn-primary btn-sm"
                       >
                         📄 Download PDF
                       </button>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-500">
                         {new Date(certificate.issuedAt).toLocaleDateString()}
                       </span>
                     </div>

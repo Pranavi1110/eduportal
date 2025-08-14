@@ -49,8 +49,8 @@ const ProtectedRoute = ({ children, allowedUserTypes = [] }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-button"></div>
+      <div className="min-h-screen bg-primary-card flex items-center justify-center">
+        <div className="animate-spin rounded-full h-24 w-24 border-4 border-primary-button border-t-transparent shadow-soft"></div>
       </div>
     );
   }
@@ -75,8 +75,8 @@ const PublicRoute = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-button"></div>
+      <div className="min-h-screen bg-primary-card flex items-center justify-center">
+        <div className="animate-spin rounded-full h-24 w-24 border-4 border-primary-button border-t-transparent shadow-soft"></div>
       </div>
     );
   }
@@ -94,8 +94,8 @@ const DashboardRoute = () => {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-button"></div>
+      <div className="min-h-screen bg-primary-card flex items-center justify-center">
+        <div className="animate-spin rounded-full h-24 w-24 border-4 border-primary-button border-t-transparent shadow-soft"></div>
       </div>
     );
   }

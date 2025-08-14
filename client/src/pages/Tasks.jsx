@@ -3,6 +3,24 @@ import { Helmet } from "react-helmet-async";
 import { useAuth } from "../hooks/useAuth";
 import api from "../services/api";
 import toast from "react-hot-toast";
+import {
+  Search,
+  Filter,
+  Calendar,
+  Briefcase,
+  Users,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  MessageSquare,
+  Plus,
+  ArrowRight,
+  Download,
+  Eye,
+  Star,
+  TrendingUp,
+  Award,
+} from "lucide-react";
 
 const Tasks = () => {
   const { user } = useAuth();
@@ -13,11 +31,12 @@ const Tasks = () => {
   const [submitting, setSubmitting] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
 
-  // NEW: filter/sort states
+  // Filter/sort states
   const [categoryFilter, setCategoryFilter] = useState("");
   const [deadlineFilter, setDeadlineFilter] = useState("");
   const [startupFilter, setStartupFilter] = useState("");
   const [sortBy, setSortBy] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   const handleInput = (taskId, value) => {
     setSubmission((prev) => ({
@@ -120,82 +139,112 @@ const Tasks = () => {
     return updated;
   };
 
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "completed":
+        return <CheckCircle className="w-5 h-5 text-green-700" />;
+      case "submitted":
+        return <AlertCircle className="w-5 h-5 text-yellow-700" />;
+      case "under-review":
+        return <Clock className="w-5 h-5 text-orange-700" />;
+      default:
+        return <Clock className="w-5 h-5 text-gray-700" />;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "completed":
+        return "bg-green-100 text-green-800 border-green-300";
+      case "submitted":
+        return "bg-yellow-100 text-yellow-800 border-yellow-300";
+      case "under-review":
+        return "bg-orange-100 text-orange-800 border-orange-300";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+  };
+
   const renderTaskCard = (task, isAssigned) => (
     <div
       key={task._id}
-      className="bg-primary-card/60 rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-shadow p-6 flex flex-col justify-between min-h-[320px]"
+      className="card-elegant p-6 group"
     >
-      {/* Task content */}
-      <div>
-                 <div className="flex justify-between items-center mb-2">
-           <div className="font-bold text-xl text-primary-dark flex-1 truncate">
-             {task.title}
-           </div>
-           <span
-             className={`text-xs px-3 py-1 rounded-full font-semibold ml-2 ${
-               task.status === "open"
-                 ? "bg-blue-100 text-blue-700"
-                 : task.status === "submitted"
-                 ? "bg-yellow-100 text-yellow-700"
-                 : task.status === "under-review"
-                 ? "bg-orange-100 text-orange-700"
-                 : task.status === "completed"
-                 ? "bg-green-200 text-green-700 border border-green-400"
-                 : task.status === "rejected"
-                 ? "bg-red-100 text-red-700"
-                 : "bg-gray-100 text-gray-700"
-             }`}
-           >
-             {user?.userType === "startup" && task.submissions && task.submissions.length > 0 ? (
-               // For startups, show more detailed status based on submissions
-               (() => {
-                 const hasPending = task.submissions.some(s => s.status === "pending");
-                 const hasUnderReview = task.submissions.some(s => s.status === "under-review");
-                 const hasApproved = task.submissions.some(s => s.status === "approved");
-                 const allRejected = task.submissions.every(s => s.status === "rejected");
-                 
-                 if (hasApproved) return "completed";
-                 if (hasUnderReview) return "under-review";
-                 if (hasPending) return "submitted";
-                 if (allRejected) return "rejected";
-                 return task.status;
-               })()
-             ) : (
-               task.status
-             )}
-           </span>
-         </div>
-        <div className="text-gray-700 mb-2 line-clamp-3">
-          {task.description}
-        </div>
-        <div className="flex flex-wrap gap-2 mb-2">
-          <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-            Category: {task.category}
-          </span>
-          <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-            Skills: {task.skills?.join(", ")}
+      {/* Header with status */}
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex items-center gap-3">
+          {getStatusIcon(task.status)}
+          <span
+            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+              task.status
+            )}`}
+          >
+            {user?.userType === "startup" && task.submissions && task.submissions.length > 0 ? (
+              (() => {
+                const hasPending = task.submissions.some(s => s.status === "pending");
+                const hasUnderReview = task.submissions.some(s => s.status === "under-review");
+                const hasApproved = task.submissions.some(s => s.status === "approved");
+                const allRejected = task.submissions.every(s => s.status === "rejected");
+                
+                if (hasApproved) return "completed";
+                if (hasUnderReview) return "under-review";
+                if (hasPending) return "submitted";
+                if (allRejected) return "rejected";
+                return task.status;
+              })()
+            ) : (
+              task.status
+            )}
           </span>
         </div>
-        <div className="text-xs text-gray-500 mb-1">
-          Deadline:{" "}
-          <span className="font-medium">
-            {new Date(task.deadline).toLocaleDateString()}
-          </span>
+        <div className="text-xs text-gray-600 bg-primary-card px-2 py-1 rounded-full border border-gray-200">
+          <Calendar className="w-3 h-3 inline mr-1" />
+          {new Date(task.deadline).toLocaleDateString()}
         </div>
+      </div>
+
+      {/* Task title and description */}
+      <h3 className="font-bold text-xl text-primary-dark mb-3 group-hover:text-primary-button transition-colors">
+        {task.title}
+      </h3>
+      <p className="text-gray-700 text-sm mb-4 line-clamp-3 leading-relaxed">
+        {task.description}
+      </p>
+
+      {/* Tags */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <span className="badge-secondary text-xs">
+          <Briefcase className="w-3 h-3 mr-1" />
+          {task.category}
+        </span>
+        {task.skills?.slice(0, 3).map((skill, idx) => (
+          <span
+            key={idx}
+            className="badge-secondary text-xs"
+          >
+            <Star className="w-3 h-3 mr-1" />
+            {skill}
+          </span>
+        ))}
+        {task.skills?.length > 3 && (
+          <span className="badge-secondary text-xs">
+            +{task.skills.length - 3} more
+          </span>
+        )}
+      </div>
+
+      {/* Task details */}
+      <div className="space-y-2 mb-4 text-sm">
         {user?.userType === "student" && (
-          <div className="text-xs text-gray-600 mt-1">
-            From:{" "}
-            <span className="font-semibold">
-              {task.startup?.companyName || "Unknown"}
-            </span>
+          <div className="flex items-center gap-2 text-gray-700">
+            <Users className="w-4 h-4" />
+            <span>From: <span className="font-semibold">{task.startup?.companyName || "Unknown"}</span></span>
           </div>
         )}
         {user?.userType === "startup" && task.assignedStudent && (
-          <div className="text-xs text-gray-600 mt-1">
-            Assigned to:{" "}
-            <span className="font-semibold">
-              {task.assignedStudent.firstName} {task.assignedStudent.lastName}
-            </span>
+          <div className="flex items-center gap-2 text-gray-700">
+            <Users className="w-4 h-4" />
+            <span>Assigned to: <span className="font-semibold">{task.assignedStudent.firstName} {task.assignedStudent.lastName}</span></span>
           </div>
         )}
       </div>
@@ -205,212 +254,278 @@ const Tasks = () => {
         <div className="mt-6">
           {task.status === "open" ? (
             <form
-              className="flex gap-2"
+              className="space-y-3"
               onSubmit={(e) => handleSubmit(e, task._id)}
             >
               <input
                 type="url"
                 placeholder="Submit your work link"
-                className="border border-gray-300 rounded-lg px-3 py-2 flex-1"
+                className="input-field-elegant text-sm"
                 value={submission[task._id] || ""}
                 onChange={(e) => handleInput(task._id, e.target.value)}
                 required
               />
               <button
                 type="submit"
-                className="bg-primary-button hover:bg-primary-dark text-white px-5 py-2 rounded-lg"
+                className="btn-primary w-full"
                 disabled={submitting[task._id]}
               >
-                {submitting[task._id] ? "Submitting..." : "Submit"}
+                {submitting[task._id] ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-dark mr-2"></div>
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    {/* <Download className="w-4 h-4 mr-2" /> */}
+                    Submit Task
+                  </>
+                )}
               </button>
             </form>
           ) : task.status === "submitted" ? (
-            <div className="text-yellow-600 font-semibold text-center mt-4">
-              Link Submitted - Awaiting Review
+            <div className="text-center py-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <AlertCircle className="w-6 h-6 text-yellow-700 mx-auto mb-2" />
+              <div className="text-yellow-800 font-semibold">Link Submitted - Awaiting Review</div>
             </div>
           ) : task.status === "under-review" ? (
-            <div className="text-orange-600 font-semibold text-center mt-4">
-              Under Review - Please Wait
+            <div className="text-center py-4 bg-orange-50 rounded-lg border border-orange-200">
+              <Clock className="w-6 h-6 text-orange-700 mx-auto mb-2" />
+              <div className="text-orange-800 font-semibold">Under Review - Please Wait</div>
             </div>
-                     ) : task.status === "completed" ? (
-             <div className="text-green-600 font-semibold text-center mt-4">
-               ✓ Task Completed
-             </div>
-           ) : task.status === "rejected" ? (
-             <div className="text-red-600 font-semibold text-center mt-4">
-               ✗ Task Rejected
-             </div>
-           ) : (
-             <div className="text-gray-600 font-semibold text-center mt-4">
-               {task.status}
-             </div>
-           )}
+          ) : task.status === "completed" ? (
+            <div className="text-center py-4 bg-green-50 rounded-lg border border-green-200">
+              <CheckCircle className="w-6 h-6 text-green-700 mx-auto mb-2" />
+              <div className="text-green-800 font-semibold">✓ Task Completed</div>
+            </div>
+          ) : task.status === "rejected" ? (
+            <div className="text-center py-4 bg-red-50 rounded-lg border border-red-200">
+              <AlertCircle className="w-6 h-6 text-red-700 mx-auto mb-2" />
+              <div className="text-red-800 font-semibold">✗ Task Rejected</div>
+            </div>
+          ) : (
+            <div className="text-center py-4 bg-primary-card rounded-lg border border-gray-200">
+              <div className="text-gray-700 font-semibold">{task.status}</div>
+            </div>
+          )}
         </div>
       )}
 
-             {/* For startups: Show submission count and status */}
-       {user?.userType === "startup" && (
-         <div className="mt-6">
-           <div className="text-sm text-gray-600 mb-2">
-             Submissions: {task.submissions?.length || 0}
-           </div>
-           {task.submissions && task.submissions.length > 0 && (
-             <div className="text-xs text-gray-500">
-               {task.submissions.map((submission, index) => {
-                 // Get student name with fallbacks
-                 let studentName = "Unknown Student";
-                 if (submission.student) {
-                   if (submission.student.firstName && submission.student.lastName) {
-                     studentName = `${submission.student.firstName} ${submission.student.lastName}`;
-                   } else if (submission.student.firstName) {
-                     studentName = submission.student.firstName;
-                   } else if (submission.student.lastName) {
-                     studentName = submission.student.lastName;
-                   } else if (submission.student.username) {
-                     studentName = submission.student.username;
-                   } else if (submission.student.email) {
-                     studentName = submission.student.email.split('@')[0];
-                   }
-                 }
-                 
-                 return (
-                   <div key={index} className="mb-1">
-                     Student: {studentName} - {submission.status}
-                   </div>
-                 );
-               })}
-             </div>
-           )}
-         </div>
-       )}
+      {/* For startups: Show submission count and status */}
+      {user?.userType === "startup" && (
+        <div className="mt-6">
+          <div className="flex items-center gap-2 text-sm text-gray-700 mb-3">
+            <TrendingUp className="w-4 h-4" />
+            <span>Submissions: <span className="font-semibold">{task.submissions?.length || 0}</span></span>
+          </div>
+          {task.submissions && task.submissions.length > 0 && (
+            <div className="space-y-2">
+              {task.submissions.map((submission, index) => {
+                let studentName = "Unknown Student";
+                if (submission.student) {
+                  if (submission.student.firstName && submission.student.lastName) {
+                    studentName = `${submission.student.firstName} ${submission.student.lastName}`;
+                  } else if (submission.student.firstName) {
+                    studentName = submission.student.firstName;
+                  } else if (submission.student.lastName) {
+                    studentName = submission.student.lastName;
+                  } else if (submission.student.username) {
+                    studentName = submission.student.username;
+                  } else if (submission.student.email) {
+                    studentName = submission.student.email.split('@')[0];
+                  }
+                }
+                
+                return (
+                  <div key={index} className="bg-primary-card rounded-lg p-3 text-xs border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-primary-dark">{studentName}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(submission.status)}`}>
+                        {submission.status}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-primary-card flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-button border-t-transparent mx-auto mb-4 shadow-soft"></div>
+          <div className="text-lg text-gray-700">Loading tasks...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="min-h-screen bg-primary-white">
       <Helmet>
         <title>Tasks - Hubinity</title>
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center py-8">
-        {loading ? (
-          <div>Loading...</div>
-        ) : user?.userType === "startup" ? (
-          <>
-            <h3 className="text-2xl font-bold mb-4 text-primary-dark">
-              Your Posted Tasks
-            </h3>
-            {allTasks.length === 0 ? (
-              <div className="text-gray-500 mb-8">No tasks posted by you.</div>
-            ) : (
-              <>
-                {/* Filters */}
-                <div className="flex flex-wrap gap-4 mb-6">
-                  <input
-                    type="text"
-                    placeholder="Search tasks..."
-                    className="border border-gray-300 rounded-lg px-4 py-2"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  <select
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="border px-3 py-2 rounded-lg"
-                  >
-                    <option value="">All Categories</option>
-                    <option value="development">Development</option>
-                    <option value="design">Design</option>
-                    <option value="marketing">Marketing</option>
-                  </select>
-                  <input
-                    type="date"
-                    value={deadlineFilter}
-                    onChange={(e) => setDeadlineFilter(e.target.value)}
-                    className="border px-3 py-2 rounded-lg"
-                  />
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="border px-3 py-2 rounded-lg"
-                  >
-                    <option value="">Sort By</option>
-                    <option value="deadline">Deadline</option>
-                    <option value="title">Title</option>
-                  </select>
-                </div>
+      <div className="container-responsive section-padding">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="section-title mb-2">
+            {user?.userType === "startup" ? "Your Posted Tasks" : "Available Tasks"}
+          </h1>
+          <p className="section-subtitle">
+            {user?.userType === "startup" 
+              ? "Manage and review task submissions from students"
+              : "Browse and submit work for available opportunities"
+            }
+          </p>
+        </div>
 
-                {/* All Posted Tasks */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filterAndSortTasks(allTasks).map((task) => renderTaskCard(task, false))}
-                </div>
-              </>
-            )}
-          </>
-        ) : (
-          <>
-            {/* Student view */}
-            {/* Filters */}
-            <div className="flex flex-wrap gap-4 mb-6">
+        {/* Search and Filters */}
+        <div className="card-elegant mb-8">
+          <div className="flex flex-col lg:flex-row gap-4 items-center">
+            {/* Search */}
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Search tasks..."
-                className="border border-gray-300 rounded-lg px-4 py-2"
+                placeholder="Search tasks by title, description, or skills..."
+                className="input-field-elegant pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
+            </div>
+
+            {/* Filter Toggle */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="btn-ghost"
+            >
+              <Filter className="w-5 h-5 mr-2" />
+              Filters
+            </button>
+          </div>
+
+          {/* Expanded Filters */}
+          {showFilters && (
+            <div className="mt-6 pt-6 border-t border-gray-200 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="border px-3 py-2 rounded-lg"
+                className="input-field-elegant"
               >
                 <option value="">All Categories</option>
                 <option value="development">Development</option>
                 <option value="design">Design</option>
                 <option value="marketing">Marketing</option>
+                <option value="research">Research</option>
+                <option value="content">Content</option>
               </select>
+
               <input
                 type="date"
                 value={deadlineFilter}
                 onChange={(e) => setDeadlineFilter(e.target.value)}
-                className="border px-3 py-2 rounded-lg"
+                className="input-field-elegant"
+                placeholder="Deadline"
               />
-              <select
-                value={startupFilter}
-                onChange={(e) => setStartupFilter(e.target.value)}
-                className="border px-3 py-2 rounded-lg"
-              >
-                <option value="">All</option>
-                <option value="true">Startup</option>
-                <option value="false">Non-Startup</option>
-              </select>
+
+              {user?.userType === "student" && (
+                <select
+                  value={startupFilter}
+                  onChange={(e) => setStartupFilter(e.target.value)}
+                  className="input-field-elegant"
+                >
+                  <option value="">All Sources</option>
+                  <option value="true">Startup</option>
+                  <option value="false">Non-Startup</option>
+                </select>
+              )}
+
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="border px-3 py-2 rounded-lg"
+                className="input-field-elegant"
               >
                 <option value="">Sort By</option>
                 <option value="deadline">Deadline</option>
                 <option value="title">Title</option>
               </select>
             </div>
+          )}
+        </div>
 
+        {/* Content */}
+        {user?.userType === "startup" ? (
+          // Startup View
+          <div>
+            {allTasks.length === 0 ? (
+              <div className="text-center py-16 card-elegant">
+                <Briefcase className="w-20 h-20 text-gray-300 mx-auto mb-6" />
+                <h3 className="text-2xl font-semibold text-primary-dark mb-4">No tasks posted yet</h3>
+                <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                  Start posting tasks to connect with talented students and get your projects completed.
+                </p>
+                <button className="btn-primary mx-auto flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  Post Your First Task
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filterAndSortTasks(allTasks).map((task) => renderTaskCard(task, false))}
+              </div>
+            )}
+          </div>
+        ) : (
+          // Student View
+          <div className="space-y-12">
             {/* Assigned Tasks */}
-            <h3 className="text-2xl font-bold mb-4">Your Assigned Tasks</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filterAndSortTasks(assignedTasks).map((task) =>
-                renderTaskCard(task, true)
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-1 h-8 bg-primary-button rounded-full"></div>
+                <h2 className="text-2xl font-bold text-primary-dark">Your Assigned Tasks</h2>
+              </div>
+              
+              {assignedTasks.length === 0 ? (
+                <div className="text-center py-12 card-elegant">
+                  <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-primary-dark mb-2">No assigned tasks</h3>
+                  <p className="text-gray-600">You don't have any tasks assigned at the moment.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filterAndSortTasks(assignedTasks).map((task) => renderTaskCard(task, true))}
+                </div>
               )}
             </div>
 
-            {/* Available Tasks from Other Startups */}
-            <h3 className="text-2xl font-bold mt-8 mb-4">Available Tasks from Other Startups</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filterAndSortTasks(
-                allTasks.filter((t) => t.status === "open" && (!t.assignedStudent || t.assignedStudent._id !== user?.id))
-              ).map((task) => renderTaskCard(task, false))}
+            {/* Available Tasks */}
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-1 h-8 bg-primary-button rounded-full"></div>
+                <h2 className="text-2xl font-bold text-primary-dark">Available Tasks</h2>
+              </div>
+              
+              {allTasks.filter((t) => t.status === "open" && (!t.assignedStudent || t.assignedStudent._id !== user?.id)).length === 0 ? (
+                <div className="text-center py-12 card-elegant">
+                  <Plus className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-primary-dark mb-2">No available tasks</h3>
+                  <p className="text-gray-600">Check back later for new opportunities.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filterAndSortTasks(
+                    allTasks.filter((t) => t.status === "open" && (!t.assignedStudent || t.assignedStudent._id !== user?.id))
+                  ).map((task) => renderTaskCard(task, false))}
+                </div>
+              )}
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

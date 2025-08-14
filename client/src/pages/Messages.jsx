@@ -74,74 +74,68 @@ const Messages = () => {
         <title>Messages - Hubinity</title>
         <meta name="description" content="In-app messaging system" />
       </Helmet>
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex gap-8">
+      <div className="min-h-screen bg-primary-white section-padding">
+        <div className="container-responsive flex flex-col lg:flex-row gap-8">
           {/* Sidebar: Conversation List */}
-          <div className="w-full md:w-1/3 bg-white rounded shadow p-4 h-[32rem] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Conversations</h2>
+          <div className="w-full lg:w-1/3 card-elegant h-[32rem] overflow-y-auto">
+            <h2 className="text-xl font-garamond font-bold mb-4 text-primary-dark">Conversations</h2>
             {loading ? (
               <div>Loading...</div>
             ) : error ? (
-              <div className="text-red-500">{error}</div>
+              <div className="text-red-600">{error}</div>
             ) : conversations.length === 0 ? (
-              <div className="text-gray-400">No conversations yet.</div>
+              <div className="text-gray-500">No conversations yet.</div>
             ) : (
               <ul>
                 {conversations.map((user) => (
                   <li
                     key={user._id}
-                    className={`p-2 rounded cursor-pointer mb-2 ${
+                    className={`p-3 rounded-xl cursor-pointer mb-2 transition-colors ${
                       selectedUser && selectedUser._id === user._id
-                        ? "bg-blue-100"
-                        : "hover:bg-gray-100"
+                        ? "bg-primary-card"
+                        : "hover:bg-primary-card"
                     }`}
                     onClick={() => setSelectedUser(user)}
                   >
-                    <div className="font-semibold">
+                    <div className="font-semibold text-primary-dark">
                       {user.userType === "startup"
                         ? user.companyName
                         : `${user.firstName} ${user.lastName}`}
                     </div>
-                    {user.userType === "startup" && (
-                      <div className="text-xs text-gray-500">{user.email}</div>
-                    )}
-                    {user.userType !== "startup" && (
-                      <div className="text-xs text-gray-500">{user.email}</div>
-                    )}
+                    <div className="text-xs text-gray-600">{user.email}</div>
                   </li>
                 ))}
               </ul>
             )}
           </div>
           {/* Main Chat Area */}
-          <div className="flex-1 bg-white rounded shadow p-4 h-[32rem] flex flex-col">
+          <div className="flex-1 card-elegant h-[32rem] flex flex-col">
             {!selectedUser ? (
-              <div className="text-gray-500 flex-1 flex items-center justify-center">
+              <div className="text-gray-600 flex-1 flex items-center justify-center">
                 Select a conversation to start chatting.
               </div>
             ) : (
               <>
-                <div className="mb-2 border-b pb-2">
+                <div className="mb-2 border-b border-gray-200 pb-2">
                   {selectedUser.userType === "startup" ? (
                     <>
-                      <div className="font-bold text-lg">{selectedUser.companyName}</div>
-                      <div className="text-xs text-gray-500 mt-1">{selectedUser.email}</div>
+                      <div className="font-bold text-lg text-primary-dark">{selectedUser.companyName}</div>
+                      <div className="text-xs text-gray-600 mt-1">{selectedUser.email}</div>
                     </>
                   ) : (
-                    <div className="font-bold text-lg">Chat with {selectedUser.firstName} {selectedUser.lastName}</div>
+                    <div className="font-bold text-lg text-primary-dark">Chat with {selectedUser.firstName} {selectedUser.lastName}</div>
                   )}
                 </div>
-                <div className="flex-1 overflow-y-auto mb-4 bg-gray-50 p-3 rounded border">
+                <div className="flex-1 overflow-y-auto mb-4 bg-primary-card p-3 rounded-xl border border-gray-200">
                   {msgLoading ? (
                     <div>Loading conversation...</div>
                   ) : msgError ? (
-                    <div className="text-red-500">{msgError}</div>
+                    <div className="text-red-600">{msgError}</div>
                   ) : messages.length === 0 ? (
-                    <div className="text-gray-400">No messages yet.</div>
+                    <div className="text-gray-500">No messages yet.</div>
                   ) : (
                     messages.map((msg) => {
                       const myId = String(user?._id || user?.id);
-                      // Always show my messages to the right, others to the left
                       const isMine = String(msg.sender) === myId;
                       return (
                         <div
@@ -151,10 +145,10 @@ const Messages = () => {
                           }`}
                         >
                           <div
-                            className={`px-3 py-2 rounded-lg max-w-xs ${
+                            className={`px-3 py-2 rounded-xl max-w-xs border text-sm break-words ${
                               isMine
-                                ? "bg-blue-500 text-white"
-                                : "bg-gray-200 text-gray-800"
+                                ? "bg-primary-button text-primary-dark border-primary-button/30"
+                                : "bg-white text-primary-dark border-gray-200"
                             }`}
                           >
                             {msg.content}
@@ -167,16 +161,16 @@ const Messages = () => {
                     })
                   )}
                 </div>
-                <form onSubmit={handleSend} className="flex gap-2 mt-2">
+                <form onSubmit={handleSend} className="flex gap-3 mt-2">
                   <textarea
-                    className="input-field flex-1"
+                    className="input-field-elegant flex-1 min-h-[48px] resize-none"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Type your message..."
                     required
                   />
                   <button
-                    className="btn btn-primary"
+                    className="btn-primary"
                     type="submit"
                     disabled={sending || !message}
                   >
@@ -184,10 +178,10 @@ const Messages = () => {
                   </button>
                 </form>
                 {msgError && (
-                  <div className="text-red-500 mt-2">{msgError}</div>
+                  <div className="text-red-600 mt-2">{msgError}</div>
                 )}
                 {success && (
-                  <div className="text-green-600 mt-2">{success}</div>
+                  <div className="text-green-700 mt-2">{success}</div>
                 )}
               </>
             )}

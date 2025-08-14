@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import {
   Eye,
@@ -18,7 +18,7 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [userType, setUserType] = useState("student");
-  const { register: registerUser, isRegisterLoading } = useAuth();
+  const { register: registerUser, isRegisterLoading, isAuthenticated } = useAuth();
 
   const {
     register,
@@ -37,6 +37,10 @@ const Register = () => {
     registerUser(userData);
   };
 
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return (
     <>
       <Helmet>
@@ -44,7 +48,7 @@ const Register = () => {
         <meta name="description" content="Create your Hubinity account" />
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-primary-card flex flex-col justify-center section-padding-sm">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
             <h2 className="text-3xl font-garamond font-bold text-primary-dark">
@@ -57,7 +61,7 @@ const Register = () => {
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="card py-8 px-4 sm:px-10">
+          <div className="card-elegant py-8 px-4 sm:px-10">
             <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
               {/* User Type Selection */}
               <div>
@@ -66,10 +70,10 @@ const Register = () => {
                   <button
                     type="button"
                     onClick={() => setUserType("student")}
-                    className={`p-3 rounded-lg border-2 transition-colors ${
+                    className={`p-3 rounded-xl border-2 transition-all shadow-subtle focus-visible-elegant ${
                       userType === "student"
-                        ? "border-primary-button bg-primary-button text-white"
-                        : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                        ? "border-primary-button bg-primary-button text-primary-dark"
+                        : "border-gray-300 bg-primary-card text-primary-dark hover:border-gray-400"
                     }`}
                   >
                     <GraduationCap className="w-5 h-5 mx-auto mb-2" />
@@ -78,10 +82,10 @@ const Register = () => {
                   <button
                     type="button"
                     onClick={() => setUserType("startup")}
-                    className={`p-3 rounded-lg border-2 transition-colors ${
+                    className={`p-3 rounded-xl border-2 transition-all shadow-subtle focus-visible-elegant ${
                       userType === "startup"
-                        ? "border-primary-button bg-primary-button text-white"
-                        : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                        ? "border-primary-button bg-primary-button text-primary-dark"
+                        : "border-gray-300 bg-primary-card text-primary-dark hover:border-gray-400"
                     }`}
                   >
                     <Building className="w-5 h-5 mx-auto mb-2" />
@@ -92,7 +96,7 @@ const Register = () => {
 
               {/* Name/Company Fields */}
               {userType === "student" ? (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="firstName" className="form-label">
                       First name
@@ -112,14 +116,14 @@ const Register = () => {
                             message: "First name must be at least 2 characters",
                           },
                         })}
-                        className={`input-field pl-10 ${
+                        className={`input-field-elegant pl-10 ${
                           errors.firstName ? "border-red-500" : ""
                         }`}
                         placeholder="First name"
                       />
                     </div>
                     {errors.firstName && (
-                      <p className="mt-1 text-sm text-red-600">
+                      <p className="form-error">
                         {errors.firstName.message}
                       </p>
                     )}
@@ -139,13 +143,13 @@ const Register = () => {
                           message: "Last name must be at least 2 characters",
                         },
                       })}
-                      className={`input-field ${
+                      className={`input-field-elegant ${
                         errors.lastName ? "border-red-500" : ""
                       }`}
                       placeholder="Last name"
                     />
                     {errors.lastName && (
-                      <p className="mt-1 text-sm text-red-600">
+                      <p className="form-error">
                         {errors.lastName.message}
                       </p>
                     )}
@@ -171,14 +175,14 @@ const Register = () => {
                           message: "Company name must be at least 2 characters",
                         },
                       })}
-                      className={`input-field pl-10 ${
+                      className={`input-field-elegant pl-10 ${
                         errors.companyName ? "border-red-500" : ""
                       }`}
                       placeholder="Company name"
                     />
                   </div>
                   {errors.companyName && (
-                    <p className="mt-1 text-sm text-red-600">
+                    <p className="form-error">
                       {errors.companyName.message}
                     </p>
                   )}
@@ -205,14 +209,14 @@ const Register = () => {
                         message: "Invalid email address",
                       },
                     })}
-                    className={`input-field pl-10 ${
+                    className={`input-field-elegant pl-10 ${
                       errors.email ? "border-red-500" : ""
                     }`}
                     placeholder="Enter your email"
                   />
                 </div>
                 {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">
+                  <p className="form-error">
                     {errors.email.message}
                   </p>
                 )}
@@ -228,7 +232,7 @@ const Register = () => {
                     id="college"
                     type="text"
                     {...register("college")}
-                    className="input-field"
+                    className="input-field-elegant"
                     placeholder="Your college or university"
                   />
                 </div>
@@ -254,14 +258,14 @@ const Register = () => {
                         message: "Password must be at least 6 characters",
                       },
                     })}
-                    className={`input-field pl-10 pr-10 ${
+                    className={`input-field-elegant pl-10 pr-10 ${
                       errors.password ? "border-red-500" : ""
                     }`}
                     placeholder="Create a password"
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center focus-visible-elegant"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
@@ -272,7 +276,7 @@ const Register = () => {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">
+                  <p className="form-error">
                     {errors.password.message}
                   </p>
                 )}
@@ -295,14 +299,14 @@ const Register = () => {
                       validate: (value) =>
                         value === password || "Passwords do not match",
                     })}
-                    className={`input-field pl-10 pr-10 ${
+                    className={`input-field-elegant pl-10 pr-10 ${
                       errors.confirmPassword ? "border-red-500" : ""
                     }`}
                     placeholder="Confirm your password"
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center focus-visible-elegant"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     {showConfirmPassword ? (
@@ -313,7 +317,7 @@ const Register = () => {
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">
+                  <p className="form-error">
                     {errors.confirmPassword.message}
                   </p>
                 )}
@@ -327,7 +331,7 @@ const Register = () => {
                   className="btn-primary w-full flex justify-center items-center"
                 >
                   {isRegisterLoading ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-dark"></div>
                   ) : (
                     <>
                       Create account
@@ -343,7 +347,7 @@ const Register = () => {
                 Already have an account?{" "}
                 <Link
                   to="/login"
-                  className="font-medium text-primary-button hover:text-primary-dark"
+                  className="font-medium text-primary-button hover:text-primary-dark transition-colors duration-200"
                 >
                   Sign in
                 </Link>

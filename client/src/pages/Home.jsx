@@ -68,22 +68,22 @@ const Home = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="gradient-bg text-primary-cta py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="gradient-bg-elegant text-primary-cta section-padding">
+        <div className="container-responsive">
           <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-garamond font-bold mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-garamond font-bold mb-6 animate-fade-in">
               Connect. Learn. <span className="text-gradient">Grow.</span>
             </h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-gray-200">
+            <p className="text-lg md:text-xl lg:text-2xl mb-8 max-w-3xl mx-auto text-gray-200 animate-slide-up">
               Hubinity bridges the gap between talented students and innovative
               startups. Build your future, one project at a time.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/register" className="btn-primary text-lg px-8 py-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-scale-in">
+              <Link to="/register" className="btn-cta text-lg px-8 py-4">
                 Get Started
                 {/* <ArrowRight className="w-5 h-5 ml-2" /> */}
               </Link>
-              <Link to="/tasks" className="btn-secondary text-lg px-8 py-4">
+              <Link to="/tasks" className="btn-primary text-lg px-8 py-4">
                 Browse Tasks
               </Link>
             </div>
@@ -92,8 +92,8 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-primary-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="section-padding bg-primary-white">
+        <div className="container-responsive">
           <div className="text-center mb-16">
             <h2 className="section-title">Why Choose Hubinity?</h2>
             <div className="flex justify-center">
@@ -104,11 +104,12 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 place-items-center">
+          <div className="grid-responsive gap-responsive place-items-center">
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="card text-center hover:shadow-medium transition-shadow max-w-sm"
+                className="card-elegant text-center hover:shadow-large transition-all duration-300 max-w-sm animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="text-primary-button mb-4 flex justify-center">
                   {feature.icon}
@@ -124,8 +125,8 @@ const Home = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="section-padding bg-primary-card">
+        <div className="container-responsive">
           <div className="text-center mb-16">
             <div className="flex justify-center">
               <h2 className="section-title max-w-xl">How It Works</h2>
@@ -137,9 +138,9 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary-button rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="grid-responsive-3 gap-responsive">
+            <div className="text-center animate-slide-up">
+              <div className="w-16 h-16 bg-primary-button rounded-full flex items-center justify-center mx-auto mb-4 shadow-soft">
                 <span className="text-primary-dark font-bold text-xl">1</span>
               </div>
               <h3 className="text-xl font-semibold text-primary-dark mb-3">
@@ -151,8 +152,8 @@ const Home = () => {
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary-button rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="text-center animate-slide-up" style={{ animationDelay: '0.1s' }}>
+              <div className="w-16 h-16 bg-primary-button rounded-full flex items-center justify-center mx-auto mb-4 shadow-soft">
                 <span className="text-primary-dark font-bold text-xl">2</span>
               </div>
               <h3 className="text-xl font-semibold text-primary-dark mb-3">
@@ -164,8 +165,8 @@ const Home = () => {
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary-button rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="text-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              <div className="w-16 h-16 bg-primary-button rounded-full flex items-center justify-center mx-auto mb-4 shadow-soft">
                 <span className="text-primary-dark font-bold text-xl">3</span>
               </div>
               <h3 className="text-xl font-semibold text-primary-dark mb-3">
@@ -181,8 +182,8 @@ const Home = () => {
       </section>
 
       {/* Testimonials Section
-      <section className="py-20 bg-primary-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="section-padding bg-primary-white">
+        <div className="container-responsive">
           <div className="text-center mb-16">
             <h2 className="section-title">What Our Users Say</h2>
             <div className="flex justify-center">
@@ -193,9 +194,9 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 place-items-center">
+          <div className="grid-responsive-3 gap-responsive place-items-center">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="card max-w-sm">
+              <div key={index} className="card-elegant max-w-sm">
                 <div className="flex items-center mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star
@@ -222,20 +223,20 @@ const Home = () => {
       </section> */}
 
       {/* CTA Section */}
-      <section className="py-20 gradient-bg text-primary-cta">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-garamond font-bold mb-6">
+      <section className="section-padding gradient-bg-elegant text-primary-cta">
+        <div className="container-responsive max-w-4xl text-center">
+          <h2 className="text-3xl md:text-4xl font-garamond font-bold mb-6 animate-fade-in">
             Ready to Start Your Journey?
           </h2>
-          <p className="text-xl mb-8 text-gray-200">
+          <p className="text-lg md:text-xl mb-8 text-gray-200 animate-slide-up">
             Join thousands of students and startups already building the future
             together.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register" className="btn-primary text-lg px-8 py-4">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-scale-in">
+            <Link to="/register" className="btn-cta text-lg px-8 py-4">
               Join as Student
             </Link>
-            <Link to="/register" className="btn-secondary text-lg px-8 py-4">
+            <Link to="/register" className="btn-primary text-lg px-8 py-4">
               Join as Startup
             </Link>
           </div>

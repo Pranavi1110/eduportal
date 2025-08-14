@@ -47,14 +47,14 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-primary-white shadow-soft">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="bg-primary-white shadow-soft sticky top-0 z-50">
+      <div className="container-responsive">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link to="/" className="flex items-center">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-banner to-primary-button rounded-lg flex items-center justify-center mr-2">
-                <span className="text-white font-bold text-sm">H</span>
+            <Link to="/" className="flex items-center focus-visible-elegant">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary-banner to-primary-button rounded-lg flex items-center justify-center mr-2 shadow-soft">
+                <span className="text-primary-cta font-bold text-sm">H</span>
               </div>
               <span className="text-xl font-garamond font-bold text-primary-dark">
                 Hubinity
@@ -69,10 +69,10 @@ const Navbar = () => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`nav-link focus-visible-elegant ${
                     isActive(item.href)
-                      ? "text-primary-button bg-primary-card"
-                      : "text-gray-600 hover:text-primary-dark hover:bg-gray-50"
+                      ? "nav-link-active"
+                      : "nav-link-inactive"
                   }`}
                 >
                   {item.name}
@@ -84,10 +84,10 @@ const Navbar = () => {
                 <Link
                   key="Certificates"
                   to="/certificates"
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`nav-link focus-visible-elegant ${
                     isActive("/certificates")
-                      ? "text-primary-button bg-primary-card"
-                      : "text-gray-600 hover:text-primary-dark hover:bg-gray-50"
+                      ? "nav-link-active"
+                      : "nav-link-inactive"
                   }`}
                 >
                   Certificates
@@ -97,10 +97,10 @@ const Navbar = () => {
                 <Link
                   key="Submissions"
                   to="/startup/submissions"
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`nav-link focus-visible-elegant ${
                     isActive("/startup/submissions")
-                      ? "text-primary-button bg-primary-card"
-                      : "text-gray-600 hover:text-primary-dark hover:bg-gray-50"
+                      ? "nav-link-active"
+                      : "nav-link-inactive"
                   }`}
                 >
                   Submissions
@@ -116,8 +116,8 @@ const Navbar = () => {
                 <div className="relative">
                   <div className="flex items-center space-x-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-primary-button rounded-full flex items-center justify-center">
-                        <span className="text-white text-sm font-medium">
+                      <div className="w-8 h-8 bg-primary-button rounded-full flex items-center justify-center shadow-soft">
+                        <span className="text-primary-dark text-sm font-medium">
                           {getUserInitial()}
                         </span>
                       </div>
@@ -132,17 +132,17 @@ const Navbar = () => {
                     <div className="relative">
                       <button
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        className="p-1 rounded-full text-gray-400 hover:text-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-button"
+                        className="p-1 rounded-full text-gray-400 hover:text-primary-dark focus-visible-elegant transition-colors duration-200"
                       >
                         <Menu className="h-5 w-5" />
                       </button>
 
                       {/* Dropdown Menu */}
                       {isMobileMenuOpen && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                        <div className="absolute right-0 mt-2 w-48 bg-primary-white rounded-xl shadow-elegant py-1 z-50 border border-gray-100">
                           <Link
                             to="/dashboard"
-                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-primary-card transition-colors duration-200"
                             onClick={() => setIsMobileMenuOpen(false)}
                           >
                             <User className="mr-3 h-4 w-4" />
@@ -150,7 +150,7 @@ const Navbar = () => {
                           </Link>
                           <Link
                             to="/profile"
-                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-primary-card transition-colors duration-200"
                             onClick={() => setIsMobileMenuOpen(false)}
                           >
                             <Settings className="mr-3 h-4 w-4" />
@@ -162,7 +162,7 @@ const Navbar = () => {
                               setIsMobileMenuOpen(false);
                             }}
                             disabled={isLogoutLoading}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-primary-card disabled:opacity-50 transition-colors duration-200"
                           >
                             <LogOut className="mr-3 h-4 w-4" />
                             {isLogoutLoading ? "Signing out..." : "Sign out"}
@@ -177,7 +177,7 @@ const Navbar = () => {
               <div className="flex items-center space-x-4">
                 <Link
                   to="/login"
-                  className="text-gray-600 hover:text-primary-dark px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-600 hover:text-primary-dark px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus-visible-elegant"
                 >
                   Sign in
                 </Link>
@@ -192,7 +192,7 @@ const Navbar = () => {
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-md text-gray-400 hover:text-primary-dark hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-button"
+              className="p-2 rounded-md text-gray-400 hover:text-primary-dark hover:bg-primary-card focus-visible-elegant transition-colors duration-200"
             >
               {isMobileMenuOpen ? (
                 <X className="h-6 w-6" />
@@ -207,14 +207,14 @@ const Navbar = () => {
       {/* Mobile menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-primary-white border-t border-gray-200 shadow-soft">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
+                className={`flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
                   isActive(item.href)
-                    ? "text-primary-button bg-primary-card"
+                    ? "text-primary-button bg-primary-card shadow-soft"
                     : "text-gray-600 hover:text-primary-dark hover:bg-gray-50"
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -229,9 +229,9 @@ const Navbar = () => {
               <Link
                 key="Certificates"
                 to="/certificates"
-                className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
+                className={`flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
                   isActive("/certificates")
-                    ? "text-primary-button bg-primary-card"
+                    ? "text-primary-button bg-primary-card shadow-soft"
                     : "text-gray-600 hover:text-primary-dark hover:bg-gray-50"
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -244,9 +244,9 @@ const Navbar = () => {
               <Link
                 key="Submissions"
                 to="/startup/submissions"
-                className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
+                className={`flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
                   isActive("/startup/submissions")
-                    ? "text-primary-button bg-primary-card"
+                    ? "text-primary-button bg-primary-card shadow-soft"
                     : "text-gray-600 hover:text-primary-dark hover:bg-gray-50"
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -259,8 +259,8 @@ const Navbar = () => {
             {isAuthenticated ? (
               <div className="pt-4 pb-3 border-t border-gray-200">
                 <div className="flex items-center px-4">
-                  <div className="w-8 h-8 bg-primary-button rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
+                  <div className="w-8 h-8 bg-primary-button rounded-full flex items-center justify-center shadow-soft">
+                    <span className="text-primary-dark text-sm font-medium">
                       {getUserInitial()}
                     </span>
                   </div>
@@ -280,7 +280,7 @@ const Navbar = () => {
                 <div className="mt-3 space-y-1">
                   <Link
                     to="/dashboard"
-                    className="flex items-center px-4 py-2 text-base font-medium text-gray-600 hover:text-primary-dark hover:bg-gray-50"
+                    className="flex items-center px-4 py-2 text-base font-medium text-gray-600 hover:text-primary-dark hover:bg-gray-50 transition-colors duration-200"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <User className="mr-3 h-5 w-5" />
@@ -288,7 +288,7 @@ const Navbar = () => {
                   </Link>
                   <Link
                     to="/profile"
-                    className="flex items-center px-4 py-2 text-base font-medium text-gray-600 hover:text-primary-dark hover:bg-gray-50"
+                    className="flex items-center px-4 py-2 text-base font-medium text-gray-600 hover:text-primary-dark hover:bg-gray-50 transition-colors duration-200"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Settings className="mr-3 h-5 w-5" />
@@ -300,7 +300,7 @@ const Navbar = () => {
                       setIsMobileMenuOpen(false);
                     }}
                     disabled={isLogoutLoading}
-                    className="flex items-center w-full px-4 py-2 text-base font-medium text-gray-600 hover:text-primary-dark hover:bg-gray-50 disabled:opacity-50"
+                    className="flex items-center w-full px-4 py-2 text-base font-medium text-gray-600 hover:text-primary-dark hover:bg-gray-50 disabled:opacity-50 transition-colors duration-200"
                   >
                     <LogOut className="mr-3 h-5 w-5" />
                     {isLogoutLoading ? "Signing out..." : "Sign out"}
@@ -312,14 +312,14 @@ const Navbar = () => {
                 <div className="space-y-2">
                   <Link
                     to="/login"
-                    className="block px-4 py-2 text-base font-medium text-gray-600 hover:text-primary-dark"
+                    className="block px-4 py-2 text-base font-medium text-gray-600 hover:text-primary-dark transition-colors duration-200"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Sign in
                   </Link>
                   <Link
                     to="/register"
-                    className="block px-4 py-2 text-base font-medium text-primary-button hover:text-primary-dark"
+                    className="block px-4 py-2 text-base font-medium text-primary-button hover:text-primary-dark transition-colors duration-200"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Get Started

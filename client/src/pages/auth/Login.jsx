@@ -34,7 +34,7 @@ const Login = () => {
         <meta name="description" content="Login to your Hubinity account" />
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-primary-card flex flex-col justify-center section-padding-sm">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
             <h2 className="text-3xl font-garamond font-bold text-primary-dark">
@@ -47,10 +47,10 @@ const Login = () => {
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="card py-8 px-4 sm:px-10">
+          <div className="card-elegant py-8 px-4 sm:px-10">
             <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
               {/* Email input */}
-              <div>
+              <div className="form-group">
                 <label htmlFor="email" className="form-label">
                   Email address
                 </label>
@@ -69,21 +69,21 @@ const Login = () => {
                         message: "Invalid email address",
                       },
                     })}
-                    className={`input-field pl-10 ${
+                    className={`input-field-elegant pl-10 ${
                       errors.email ? "border-red-500" : ""
                     }`}
                     placeholder="Enter your email"
                   />
                 </div>
                 {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">
+                  <p className="form-error">
                     {errors.email.message}
                   </p>
                 )}
               </div>
 
               {/* Password input */}
-              <div>
+              <div className="form-group">
                 <label htmlFor="password" className="form-label">
                   Password
                 </label>
@@ -102,14 +102,14 @@ const Login = () => {
                         message: "Password must be at least 6 characters",
                       },
                     })}
-                    className={`input-field pl-10 pr-10 ${
+                    className={`input-field-elegant pl-10 pr-10 ${
                       errors.password ? "border-red-500" : ""
                     }`}
                     placeholder="Enter your password"
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center focus-visible-elegant"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
@@ -120,7 +120,7 @@ const Login = () => {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">
+                  <p className="form-error">
                     {errors.password.message}
                   </p>
                 )}
@@ -132,11 +132,11 @@ const Login = () => {
                     id="remember-me"
                     name="remember-me"
                     type="checkbox"
-                    className="h-4 w-4 text-primary-button focus:ring-primary-button border-gray-300 rounded"
+                    className="h-4 w-4 text-primary-button focus:ring-primary-button border-gray-300 rounded focus-visible-elegant"
                   />
                   <label
                     htmlFor="remember-me"
-                    className="ml-2 block text-sm text-gray-900"
+                    className="ml-2 block text-sm text-primary-dark"
                   >
                     Remember me
                   </label>
@@ -145,7 +145,7 @@ const Login = () => {
                 <div className="text-sm">
                   <Link
                     to="/forgot-password"
-                    className="font-medium text-primary-button hover:text-primary-dark"
+                    className="font-medium text-primary-button hover:text-primary-dark transition-colors duration-200"
                   >
                     Forgot your password?
                   </Link>
@@ -159,7 +159,7 @@ const Login = () => {
                   className="btn-primary w-full flex justify-center items-center"
                 >
                   {isLoginLoading ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-dark"></div>
                   ) : (
                     <>
                       Sign in
@@ -175,7 +175,7 @@ const Login = () => {
                 Don't have an account?{" "}
                 <Link
                   to="/register"
-                  className="font-medium text-primary-button hover:text-primary-dark"
+                  className="font-medium text-primary-button hover:text-primary-dark transition-colors duration-200"
                 >
                   Sign up
                 </Link>

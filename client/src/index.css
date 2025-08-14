@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -16,49 +16,110 @@
   html {
     scroll-behavior: smooth;
   }
+
+  /* Ensure no horizontal scrolling */
+  body, html {
+    overflow-x: hidden;
+  }
+
+  /* Typography improvements */
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-primary-dark font-garamond;
+  }
+
+  /* Form elements base styling */
+  input, textarea, select {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-button focus:border-transparent;
+  }
 }
 
 @layer components {
+  /* Button Components */
   .btn-primary {
-    @apply bg-primary-button text-primary-dark font-semibold py-3 px-6 rounded-xl hover:bg-opacity-90 transition-all duration-200 shadow-soft;
+    @apply bg-primary-button text-primary-dark font-semibold py-3 px-6 rounded-xl hover:bg-opacity-90 transition-all duration-200 shadow-soft hover:shadow-medium transform hover:-translate-y-0.5;
   }
   
   .btn-secondary {
-    @apply bg-transparent border-2 border-primary-button text-primary-button font-semibold py-3 px-6 rounded-xl hover:bg-primary-button hover:text-primary-dark transition-all duration-200;
+    @apply bg-transparent border-2 border-primary-button text-primary-button font-semibold py-3 px-6 rounded-xl hover:bg-primary-button hover:text-primary-dark transition-all duration-200 shadow-soft hover:shadow-medium transform hover:-translate-y-0.5;
   }
   
   .btn-ghost {
-    @apply bg-transparent text-primary-dark font-medium py-2 px-4 rounded-lg hover:bg-gray-100 transition-all duration-200;
+    @apply bg-transparent text-primary-dark font-medium py-2 px-4 rounded-lg hover:bg-primary-card transition-all duration-200;
+  }
+
+  .btn-cta {
+    @apply bg-primary-cta text-primary-dark font-semibold py-3 px-6 rounded-xl hover:bg-opacity-90 transition-all duration-200 shadow-soft hover:shadow-medium transform hover:-translate-y-0.5;
   }
   
+  /* Card Components */
   .card {
-    @apply bg-primary-card rounded-2xl p-6 shadow-soft border border-gray-200;
+    @apply bg-primary-card rounded-2xl p-6 shadow-soft border border-gray-200 hover:shadow-medium transition-shadow duration-200;
+  }
+
+  .card-elegant {
+    @apply bg-primary-white rounded-2xl p-6 shadow-elegant border border-gray-100 hover:shadow-large transition-all duration-300;
+  }
+
+  .card-banner {
+    @apply bg-primary-banner text-primary-cta rounded-2xl p-6 shadow-medium;
   }
   
+  /* Form Components */
   .input-field {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-button focus:border-transparent transition-all duration-200 bg-white;
+    @apply w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-button focus:border-transparent transition-all duration-200 bg-white shadow-subtle;
+  }
+
+  .input-field-elegant {
+    @apply w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-button focus:border-transparent transition-all duration-200 bg-primary-card shadow-soft;
   }
   
   .form-label {
-    @apply block text-sm font-medium text-gray-700 mb-2;
+    @apply block text-sm font-medium text-primary-dark mb-2;
+  }
+
+  .form-group {
+    @apply space-y-2 mb-6;
+  }
+
+  .form-error {
+    @apply text-red-600 text-sm mt-1;
+  }
+
+  .form-success {
+    @apply text-green-600 text-sm mt-1;
   }
   
+  /* Typography Components */
   .section-title {
-    @apply text-3xl font-garamond font-bold text-primary-dark mb-6;
+    @apply text-3xl md:text-4xl font-garamond font-bold text-primary-dark mb-6;
   }
   
   .section-subtitle {
     @apply text-lg text-gray-600 mb-8 max-w-2xl;
   }
+
+  .headline-text {
+    @apply text-primary-cta font-garamond font-bold;
+  }
+
+  .body-text {
+    @apply text-primary-dark font-sans;
+  }
   
+  /* Background Components */
   .gradient-bg {
     @apply bg-gradient-to-br from-primary-banner to-primary-button;
+  }
+
+  .gradient-bg-elegant {
+    @apply bg-gradient-to-br from-primary-banner via-primary-button to-primary-card;
   }
   
   .text-gradient {
     @apply bg-gradient-to-r from-primary-banner to-primary-button bg-clip-text text-transparent;
   }
   
+  /* Badge Components */
   .badge {
     @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
   }
@@ -68,7 +129,7 @@
   }
   
   .badge-secondary {
-    @apply badge bg-gray-100 text-gray-700;
+    @apply badge bg-primary-card text-primary-dark;
   }
   
   .badge-success {
@@ -82,13 +143,73 @@
   .badge-error {
     @apply badge bg-red-100 text-red-800;
   }
+
+  /* Navigation Components */
+  .nav-link {
+    @apply px-3 py-2 rounded-md text-sm font-medium transition-all duration-200;
+  }
+
+  .nav-link-active {
+    @apply text-primary-button bg-primary-card shadow-soft;
+  }
+
+  .nav-link-inactive {
+    @apply text-gray-600 hover:text-primary-dark hover:bg-gray-50;
+  }
+
+  /* Layout Components */
+  .container-responsive {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-padding {
+    @apply py-12 md:py-16 lg:py-20;
+  }
+
+  .section-padding-sm {
+    @apply py-8 md:py-12;
+  }
+
+  /* Interactive Components */
+  .interactive-card {
+    @apply card cursor-pointer hover:shadow-medium hover:-translate-y-1 transition-all duration-300;
+  }
+
+  .interactive-button {
+    @apply btn-primary active:transform active:scale-95;
+  }
+
+  /* Loading States */
+  .loading-skeleton {
+    @apply animate-pulse bg-gray-200 rounded;
+  }
+
+  .loading-overlay {
+    @apply absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-2xl;
+  }
 }
 
 @layer utilities {
+  /* Text Utilities */
   .text-balance {
     text-wrap: balance;
   }
+
+  .text-ellipsis-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .text-ellipsis-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
   
+  /* Scrollbar Utilities */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -97,11 +218,36 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .scrollbar-elegant {
+    scrollbar-width: thin;
+    scrollbar-color: #D2B99E #E9E4DE;
+  }
+
+  .scrollbar-elegant::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-elegant::-webkit-scrollbar-track {
+    background: #E9E4DE;
+    border-radius: 3px;
+  }
+
+  .scrollbar-elegant::-webkit-scrollbar-thumb {
+    background: #D2B99E;
+    border-radius: 3px;
+  }
   
+  /* Effect Utilities */
   .glass-effect {
     @apply backdrop-blur-sm bg-white bg-opacity-80 border border-white border-opacity-20;
   }
+
+  .glass-effect-dark {
+    @apply backdrop-blur-sm bg-primary-banner bg-opacity-90 border border-primary-cta border-opacity-20;
+  }
   
+  /* Animation Utilities */
   .animate-fade-in {
     animation: fadeIn 0.5s ease-in-out;
   }
@@ -112,5 +258,60 @@
   
   .animate-scale-in {
     animation: scaleIn 0.2s ease-out;
+  }
+
+  .animate-bounce-soft {
+    animation: bounceSoft 0.6s ease-in-out;
+  }
+
+  .animate-pulse-soft {
+    animation: pulseSoft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Responsive Utilities */
+  .mobile-first {
+    @apply w-full;
+  }
+
+  .tablet-up {
+    @apply md:w-auto;
+  }
+
+  .desktop-up {
+    @apply lg:w-auto;
+  }
+
+  /* Spacing Utilities */
+  .space-responsive {
+    @apply space-y-4 md:space-y-6 lg:space-y-8;
+  }
+
+  .gap-responsive {
+    @apply gap-4 md:gap-6 lg:gap-8;
+  }
+
+  /* Grid Utilities */
+  .grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 md:grid-cols-2;
+  }
+
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3;
+  }
+
+  /* Focus Utilities */
+  .focus-visible-elegant {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-button focus-visible:ring-offset-2;
+  }
+
+  /* Print Utilities */
+  @media print {
+    .print-hidden {
+      display: none !important;
+    }
   }
 }

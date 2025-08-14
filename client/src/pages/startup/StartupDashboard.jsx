@@ -11,8 +11,6 @@ import {
   Building,
   Users,
   Briefcase,
-  DollarSign,
-  TrendingUp,
   Plus,
   Eye,
 } from "lucide-react";
@@ -95,28 +93,13 @@ const StartupDashboard = () => {
         (t) => t.status === "open" || t.status === "in-progress"
       ).length,
       icon: Briefcase,
-      color: "text-blue-600",
+      color: "text-primary-button",
     },
     {
       label: "Students Hired",
       value: (tasks || []).filter((t) => t.assignedStudent).length,
       icon: Users,
-      color: "text-green-600",
-    },
-    {
-      label: "Total Spent",
-      value: `$${(tasks || []).reduce(
-        (sum, t) => sum + (t.budget?.max || 0),
-        0
-      )}`,
-      icon: DollarSign,
-      color: "text-green-600",
-    },
-    {
-      label: "Avg. Rating",
-      value: profile?.averageRating || "N/A",
-      icon: TrendingUp,
-      color: "text-purple-600",
+      color: "text-primary-button",
     },
   ];
 
@@ -133,7 +116,12 @@ const StartupDashboard = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div className="min-h-screen bg-primary-card flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-button border-t-transparent shadow-soft" />
+      </div>
+    );
 
   return (
     <>
@@ -145,16 +133,16 @@ const StartupDashboard = () => {
         />
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-primary-white">
         {/* Header */}
-        <div className="bg-primary-white shadow-soft">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="gradient-bg-elegant text-primary-cta">
+          <div className="container-responsive py-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-garamond font-bold text-primary-dark">
+                <h1 className="text-3xl md:text-4xl font-garamond font-bold">
                   Welcome back, {user?.firstName || profile?.companyName}!
                 </h1>
-                <p className="text-gray-600 mt-1">
+                <p className="text-base md:text-lg text-gray-200 mt-1">
                   Here's what's happening with your startup
                 </p>
               </div>
@@ -163,7 +151,7 @@ const StartupDashboard = () => {
                 <div className="relative">
                   <button
                     title="Notifications"
-                    className="relative text-xl"
+                    className="relative p-3 rounded-full bg-primary-card text-primary-dark shadow-soft hover:shadow-medium"
                     onClick={() => setShowNotifications((prev) => !prev)}
                   >
                     🔔
@@ -174,11 +162,11 @@ const StartupDashboard = () => {
                     )}
                   </button>
                   {showNotifications && (
-                    <div className="absolute top-10 right-0 bg-white border rounded shadow-lg w-80 z-50 p-4">
+                    <div className="absolute top-12 right-0 bg-primary-white border rounded-xl shadow-elegant w-80 z-50 p-4">
                       <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-lg font-semibold">Notifications</h3>
+                        <h3 className="text-lg font-semibold text-primary-dark">Notifications</h3>
                         <button
-                          className="text-gray-500 hover:text-gray-800 text-xl font-bold px-2"
+                          className="text-gray-500 hover:text-primary-dark text-xl font-bold px-2"
                           onClick={() => setShowNotifications(false)}
                           title="Close"
                         >
@@ -186,7 +174,7 @@ const StartupDashboard = () => {
                         </button>
                       </div>
                       {notifications.filter((n) => !n.read).length === 0 ? (
-                        <div className="text-gray-500">No notifications.</div>
+                        <div className="text-gray-600">No notifications.</div>
                       ) : (
                         <ul className="space-y-2 max-h-64 overflow-y-auto">
                           {notifications
@@ -194,36 +182,50 @@ const StartupDashboard = () => {
                             .map((notif, idx) => (
                               <li
                                 key={notif._id || idx}
-                                className="p-3 rounded shadow border bg-yellow-50"
+                                className="p-3 rounded-lg border bg-yellow-50 flex justify-between items-center"
                               >
-                                <div className="font-medium">
-                                  {notif.message}
+                                <div>
+                                  <div className="font-medium text-primary-dark">
+                                    {notif.message}
+                                  </div>
+                                  <div className="text-xs text-gray-600">
+                                    {new Date(notif.createdAt).toLocaleString()}
+                                  </div>
+                                  {notif.link && (
+                                    <button
+                                      onClick={async () => {
+                                        if (!notif.read) {
+                                          await markStartupNotificationRead(
+                                            authData?.token,
+                                            notif._id
+                                          );
+                                          setNotifications((prev) =>
+                                            prev.filter((n) => n._id !== notif._id)
+                                          );
+                                        }
+                                        window.location.href = notif.link;
+                                      }}
+                                      className="text-primary-button hover:text-primary-dark text-sm"
+                                    >
+                                      View
+                                    </button>
+                                  )}
                                 </div>
-                                <div className="text-xs text-gray-500">
-                                  {new Date(notif.createdAt).toLocaleString()}
-                                </div>
-
-                                {notif.link && (
-                                  <button
-                                    onClick={async () => {
-                                      if (!notif.read) {
-                                        await markStartupNotificationRead(
-                                          authData?.token,
-                                          notif._id
-                                        );
-                                        setNotifications((prev) =>
-                                          prev.filter(
-                                            (n) => n._id !== notif._id
-                                          )
-                                        );
-                                      }
-                                      window.location.href = notif.link;
-                                    }}
-                                    className="text-blue-600 underline text-sm"
-                                  >
-                                    View
-                                  </button>
-                                )}
+                                <button
+                                  className="text-gray-400 hover:text-red-600 text-lg font-bold ml-2"
+                                  title="Remove notification"
+                                  onClick={async () => {
+                                    await markStartupNotificationRead(
+                                      authData?.token,
+                                      notif._id
+                                    );
+                                    setNotifications((prev) =>
+                                      prev.filter((n) => n._id !== notif._id)
+                                    );
+                                  }}
+                                >
+                                  &times;
+                                </button>
                               </li>
                             ))}
                         </ul>
@@ -233,7 +235,7 @@ const StartupDashboard = () => {
                 </div>
                 {/* ...existing buttons... */}
                 <button
-                  className="btn-secondary"
+                  className="btn-primary"
                   onClick={() => navigate("/startup/browse-students")}
                 >
                   <Users className="w-4 h-4 mr-2" />
@@ -251,13 +253,13 @@ const StartupDashboard = () => {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="container-responsive section-padding">
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {stats.map((stat, index) => (
-              <div key={index} className="card">
+              <div key={index} className="card-elegant">
                 <div className="flex items-center">
-                  <div className={`p-3 rounded-lg bg-gray-100 ${stat.color}`}>
+                  <div className={`p-3 rounded-lg bg-primary-card ${stat.color}`}>
                     <stat.icon className="w-6 h-6" />
                   </div>
                   <div className="ml-4">
@@ -276,24 +278,22 @@ const StartupDashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Student Submissions Section */}
             <div className="lg:col-span-3">
-              <div className="card mb-8">
-                <h2 className="text-xl font-semibold text-primary-dark mb-4">
+              <div className="card-elegant mb-8">
+                <h2 className="text-2xl font-bold text-primary-dark mb-4">
                   Task Submissions from Students
                 </h2>
                 {submissions.length === 0 ? (
-                  <div className="text-gray-500">No submissions yet.</div>
+                  <div className="text-gray-600">No submissions yet.</div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead>
                         <tr>
-                          <th className="px-4 py-2 text-left">Task</th>
-                          <th className="px-4 py-2 text-left">Student</th>
-                          <th className="px-4 py-2 text-left">
-                            Submission Link
-                          </th>
-                          <th className="px-4 py-2 text-left">Status</th>
-                          <th className="px-4 py-2 text-left">Actions</th>
+                          <th className="px-4 py-2 text-left text-sm">Task</th>
+                          <th className="px-4 py-2 text-left text-sm">Student</th>
+                          <th className="px-4 py-2 text-left text-sm">Submission Link</th>
+                          <th className="px-4 py-2 text-left text-sm">Status</th>
+                          <th className="px-4 py-2 text-left text-sm">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -304,7 +304,10 @@ const StartupDashboard = () => {
                               {typeof sub.student === "object"
                                 ? `${sub.student.firstName || ""} ${
                                     sub.student.lastName || ""
-                                  }`.trim() || sub.student.username || sub.student.email?.split('@')[0] || "Unknown Student"
+                                  }`.trim() ||
+                                  sub.student.username ||
+                                  sub.student.email?.split("@")[0] ||
+                                  "Unknown Student"
                                 : sub.student}
                             </td>
                             <td className="px-4 py-2">
@@ -312,21 +315,23 @@ const StartupDashboard = () => {
                                 href={sub.link}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-blue-600 underline"
+                                className="text-primary-button underline"
                               >
                                 View
                               </a>
                             </td>
-                                                         <td className="px-4 py-2 capitalize">
-                               <div>
-                                 <div className="font-medium">{sub.status || "pending"}</div>
-                                 <div className="text-xs text-gray-500">
-                                   Task: {sub.taskStatus || "unknown"}
-                                 </div>
-                               </div>
-                             </td>
+                            <td className="px-4 py-2 capitalize">
+                              <div>
+                                <div className="font-medium text-primary-dark">
+                                  {sub.status || "pending"}
+                                </div>
+                                <div className="text-xs text-gray-600">
+                                  Task: {sub.taskStatus || "unknown"}
+                                </div>
+                              </div>
+                            </td>
                             <td className="px-4 py-2">
-                              {sub.status === "pending" && (
+                              {(sub.status === "pending" || sub.status === "under-review") && (
                                 <>
                                   <button
                                     className="btn-primary mr-2"
@@ -343,7 +348,7 @@ const StartupDashboard = () => {
                                     Approve
                                   </button>
                                   <button
-                                    className="btn-danger"
+                                    className="btn-ghost text-red-600"
                                     onClick={() =>
                                       handleSubmissionAction(
                                         sub.taskId,
@@ -359,12 +364,12 @@ const StartupDashboard = () => {
                                 </>
                               )}
                               {sub.status === "approved" && (
-                                <span className="text-green-600 font-semibold">
+                                <span className="text-green-700 font-semibold">
                                   Approved
                                 </span>
                               )}
                               {sub.status === "rejected" && (
-                                <span className="text-red-600 font-semibold">
+                                <span className="text-red-700 font-semibold">
                                   Rejected
                                 </span>
                               )}
@@ -379,9 +384,9 @@ const StartupDashboard = () => {
             </div>
             {/* Recent Tasks */}
             <div className="lg:col-span-2">
-              <div className="card">
+              <div className="card-elegant">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-primary-dark">
+                  <h2 className="text-2xl font-bold text-primary-dark">
                     Recent Tasks
                   </h2>
                   <button
@@ -395,20 +400,19 @@ const StartupDashboard = () => {
                   {(tasks || []).slice(0, 5).map((task) => (
                     <div
                       key={task._id}
-                      className="border border-gray-200 rounded-xl p-4 hover:shadow-soft transition-shadow"
+                      className="border border-gray-200 rounded-xl p-4 hover:shadow-soft transition-shadow bg-primary-white"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h3 className="font-semibold text-primary-dark mb-1">
                             {task.title}
                           </h3>
-                          <p className="text-sm text-gray-600 mb-2">
+                          <p className="text-sm text-gray-700 mb-2">
                             {task.assignedStudent
                               ? `Assigned to ${
                                   task.assignedStudent.firstName || ""
                                 } ${task.assignedStudent.lastName || ""}`
-                              : "Unassigned"}{" "}
-                            • ${task.budget?.max}
+                              : "Unassigned"}
                           </p>
                           <div className="flex items-center space-x-4 mb-3">
                             <span
@@ -416,12 +420,10 @@ const StartupDashboard = () => {
                             >
                               {task.status.replace("-", " ")}
                             </span>
-                            <span className="text-sm text-gray-500">
-                              Due:{" "}
-                              {new Date(task.deadline).toLocaleDateString()}
+                            <span className="text-sm text-gray-600">
+                              Due: {new Date(task.deadline).toLocaleDateString()}
                             </span>
                           </div>
-                          {/* Progress bar and completion % can be added if tracked */}
                         </div>
                         <button
                           className="btn-ghost p-2"
@@ -439,28 +441,28 @@ const StartupDashboard = () => {
             {/* Quick Actions & Analytics */}
             <div className="space-y-6">
               {/* Quick Actions */}
-              <div className="card">
-                <h2 className="text-xl font-semibold text-primary-dark mb-4">
+              <div className="card-elegant">
+                <h2 className="text-2xl font-bold text-primary-dark mb-4">
                   Quick Actions
                 </h2>
                 <div className="space-y-3">
                   <button
-                    className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                    className="w-full flex items-center p-3 text-left hover:bg-primary-card rounded-lg transition-colors"
                     onClick={() => navigate("/startup/tasks")}
                   >
                     <Briefcase className="w-5 h-5 text-primary-button mr-3" />
                     <span>View My Tasks</span>
                   </button>
                   <button
-                    className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                    className="w-full flex items-center p-3 text-left hover:bg-primary-card rounded-lg transition-colors"
                     onClick={() => navigate("/startup/browse-students")}
                   >
                     <Users className="w-5 h-5 text-primary-button mr-3" />
                     <span>Browse Students</span>
                   </button>
                   <button
-                    className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
-                    onClick={() => navigate("/startup/profile")}
+                    className="w-full flex items-center p-3 text-left hover:bg-primary-card rounded-lg transition-colors"
+                    onClick={() => navigate("/profile")}
                   >
                     <Building className="w-5 h-5 text-primary-button mr-3" />
                     <span>Update Profile</span>
@@ -469,13 +471,13 @@ const StartupDashboard = () => {
               </div>
 
               {/* Company Stats */}
-              <div className="card">
-                <h2 className="text-xl font-semibold text-primary-dark mb-4">
+              <div className="card-elegant">
+                <h2 className="text-2xl font-bold text-primary-dark mb-4">
                   Company Stats
                 </h2>
                 <div className="space-y-3">
-                  <div className="flex items-center p-3 bg-blue-50 rounded-lg">
-                    <Building className="w-5 h-5 text-blue-600 mr-3" />
+                  <div className="flex items-center p-3 bg-primary-card rounded-lg">
+                    <Building className="w-5 h-5 text-primary-button mr-3" />
                     <div>
                       <p className="font-medium text-primary-dark">
                         {profile?.companyName}
@@ -486,27 +488,14 @@ const StartupDashboard = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center p-3 bg-green-50 rounded-lg">
-                    <Users className="w-5 h-5 text-green-600 mr-3" />
+                  <div className="flex items-center p-3 bg-primary-card rounded-lg">
+                    <Users className="w-5 h-5 text-primary-button mr-3" />
                     <div>
                       <p className="font-medium text-primary-dark">
                         {(tasks || []).filter((t) => t.assignedStudent).length}{" "}
                         Students
                       </p>
                       <p className="text-sm text-gray-600">Currently working</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center p-3 bg-purple-50 rounded-lg">
-                    <DollarSign className="w-5 h-5 text-purple-600 mr-3" />
-                    <div>
-                      <p className="font-medium text-primary-dark">
-                        $
-                        {(tasks || []).reduce(
-                          (sum, t) => sum + (t.budget?.max || 0),
-                          0
-                        )}
-                      </p>
-                      <p className="text-sm text-gray-600">Total spent</p>
                     </div>
                   </div>
                 </div>

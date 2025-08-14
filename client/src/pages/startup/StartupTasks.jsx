@@ -68,14 +68,22 @@ const StartupTasks = () => {
     }
   };
 
+  // Compute a UI-facing status based on submissions + task.status
+  const deriveTaskStatus = (task) => {
+    const submissions = task.submissions || [];
+    if (submissions.some((s) => s.status === "under-review")) return "under-review";
+    if (submissions.some((s) => s.status === "approved")) return "completed";
+    // Hide the word "submitted" in UI by treating it as "open"
+    if (task.status === "submitted") return "open";
+    return task.status || "open";
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case "completed":
         return "bg-green-100 text-green-800";
       case "in-progress":
         return "bg-blue-100 text-blue-800";
-      case "submitted":
-        return "bg-yellow-100 text-yellow-800";
       case "under-review":
         return "bg-orange-100 text-orange-800";
       case "review":
@@ -90,9 +98,6 @@ const StartupTasks = () => {
       case "completed":
         return <CheckCircle className="w-4 h-4" />;
       case "in-progress":
-        return <Clock className="w-4 h-4" />;
-      case "submitted":
-        return <AlertCircle className="w-4 h-4" />;
       case "under-review":
         return <Clock className="w-4 h-4" />;
       default:
@@ -100,27 +105,28 @@ const StartupTasks = () => {
     }
   };
 
-  const filteredTasks = tasks.filter(task => {
+  // Precompute statuses for filtering and counts
+  const tasksWithComputed = tasks.map((t) => ({ ...t, _uiStatus: deriveTaskStatus(t) }));
+
+  const filteredTasks = tasksWithComputed.filter((task) => {
     if (activeTab === "all") return true;
-    if (activeTab === "open") return task.status === "open";
-    if (activeTab === "submitted") return task.status === "submitted";
-    if (activeTab === "under-review") return task.status === "under-review";
-    if (activeTab === "completed") return task.status === "completed";
+    if (activeTab === "open") return task._uiStatus === "open";
+    if (activeTab === "under-review") return task._uiStatus === "under-review";
+    if (activeTab === "completed") return task._uiStatus === "completed";
     return true;
   });
 
   const tabs = [
-    { id: "all", label: "All Tasks", count: tasks.length },
-    { id: "open", label: "Open", count: tasks.filter(t => t.status === "open").length },
-    { id: "submitted", label: "Submitted", count: tasks.filter(t => t.status === "submitted").length },
-    { id: "under-review", label: "Under Review", count: tasks.filter(t => t.status === "under-review").length },
-    { id: "completed", label: "Completed", count: tasks.filter(t => t.status === "completed").length },
+    { id: "all", label: "All Tasks", count: tasksWithComputed.length },
+    { id: "open", label: "Open", count: tasksWithComputed.filter((t) => t._uiStatus === "open").length },
+    { id: "under-review", label: "Under Review", count: tasksWithComputed.filter((t) => t._uiStatus === "under-review").length },
+    { id: "completed", label: "Completed", count: tasksWithComputed.filter((t) => t._uiStatus === "completed").length },
   ];
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg text-gray-500">Loading tasks...</div>
+      <div className="min-h-screen bg-primary-card flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-button border-t-transparent shadow-soft" />
       </div>
     );
   }
@@ -131,14 +137,14 @@ const StartupTasks = () => {
         <title>My Tasks - Startup Dashboard</title>
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-primary-white">
         {/* Header */}
-        <div className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="gradient-bg-elegant text-primary-cta">
+          <div className="container-responsive py-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">My Tasks</h1>
-                <p className="text-gray-600 mt-1">
+                <h1 className="text-3xl md:text-4xl font-garamond font-bold">My Tasks</h1>
+                <p className="text-base md:text-lg text-gray-200 mt-1">
                   Manage tasks posted by your startup
                 </p>
               </div>
@@ -153,22 +159,22 @@ const StartupTasks = () => {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="container-responsive section-padding">
           {/* Tabs */}
           <div className="border-b border-gray-200 mb-8">
-            <nav className="-mb-px flex space-x-8">
+            <nav className="-mb-px flex flex-wrap gap-6">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  className={`py-2 px-1 border-b-2 font-medium text-base ${
                     activeTab === tab.id
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      ? "border-primary-button text-primary-dark"
+                      : "border-transparent text-gray-600 hover:text-primary-dark hover:border-gray-300"
                   }`}
                 >
                   {tab.label}
-                  <span className="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2.5 rounded-full text-xs font-medium">
+                  <span className="ml-2 bg-primary-card text-primary-dark py-0.5 px-2.5 rounded-full text-xs font-medium border border-gray-200">
                     {tab.count}
                   </span>
                 </button>
@@ -178,12 +184,12 @@ const StartupTasks = () => {
 
           {/* Tasks Grid */}
           {filteredTasks.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-16 card-elegant">
               <div className="text-gray-500 text-lg">
                 No tasks found in this category.
               </div>
               <button
-                className="mt-4 btn-primary"
+                className="mt-6 btn-primary"
                 onClick={() => navigate("/startup/post-task")}
               >
                 Post Your First Task
@@ -194,23 +200,23 @@ const StartupTasks = () => {
               {filteredTasks.map((task) => (
                 <div
                   key={task._id}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+                  className="card-elegant"
                 >
                   {/* Task Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      <h3 className="text-lg font-semibold text-primary-dark mb-2">
                         {task.title}
                       </h3>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                      <p className="text-gray-700 text-sm mb-3 line-clamp-2">
                         {task.description}
                       </p>
                       <div className="flex items-center gap-2 mb-3">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
-                          {getStatusIcon(task.status)}
-                          <span className="ml-1">{task.status.replace("-", " ")}</span>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(task._uiStatus)}`}>
+                          {getStatusIcon(task._uiStatus)}
+                          <span className="ml-1 capitalize">{task._uiStatus.replace("-", " ")}</span>
                         </span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-600">
                           Due: {new Date(task.deadline).toLocaleDateString()}
                         </span>
                       </div>
@@ -227,38 +233,35 @@ const StartupTasks = () => {
                   {/* Task Details */}
                   <div className="mb-4">
                     <div className="flex flex-wrap gap-2 mb-3">
-                      <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                      <span className="bg-primary-card text-primary-dark text-xs px-2 py-1 rounded border border-gray-200">
                         {task.category}
                       </span>
                       {task.skills?.map((skill, idx) => (
                         <span
                           key={idx}
-                          className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded"
+                          className="bg-primary-card text-primary-dark text-xs px-2 py-1 rounded border border-gray-200"
                         >
                           {skill}
                         </span>
                       ))}
                     </div>
-                    <div className="text-sm text-gray-600">
-                      Budget: ${task.budget?.min || 0} - ${task.budget?.max || 0}
-                    </div>
                   </div>
 
                   {/* Submissions */}
                   {task.submissions && task.submissions.length > 0 && (
-                    <div className="border-t pt-4">
-                      <h4 className="text-sm font-medium text-gray-900 mb-3">
+                    <div className="border-t border-gray-200 pt-4">
+                      <h4 className="text-sm font-medium text-primary-dark mb-3">
                         Student Submissions ({task.submissions.length})
                       </h4>
                       <div className="space-y-3">
                         {task.submissions.map((submission, idx) => (
                           <div
                             key={idx}
-                            className="bg-gray-50 rounded-lg p-3 border"
+                            className="bg-primary-card rounded-lg p-3 border border-gray-200"
                           >
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-gray-900">
+                                <span className="text-sm font-medium text-primary-dark">
                                   {submission.student?.firstName} {submission.student?.lastName}
                                 </span>
                                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -270,23 +273,21 @@ const StartupTasks = () => {
                                   {submission.status}
                                 </span>
                               </div>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-600">
                                 {new Date(submission.submittedAt).toLocaleDateString()}
                               </span>
                             </div>
-                            
                             <div className="flex items-center gap-2 mb-3">
                               <a
                                 href={submission.link}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+                                className="text-primary-button hover:text-primary-dark text-sm flex items-center gap-1"
                               >
                                 <ExternalLink className="w-3 h-3" />
                                 View Submission
                               </a>
                             </div>
-
                             {/* Action Buttons */}
                             {submission.status === "pending" && (
                               <div className="flex gap-2">
@@ -298,18 +299,17 @@ const StartupTasks = () => {
                                 </button>
                                 <button
                                   onClick={() => handleApprove(task._id, submission.student._id, false)}
-                                  className="btn-danger text-xs px-3 py-1"
+                                  className="btn-ghost text-red-600 text-xs px-3 py-1"
                                 >
                                   Reject
                                 </button>
                               </div>
                             )}
-
                             {submission.status === "under-review" && (
                               <div className="space-y-2">
                                 <textarea
                                   placeholder="Add review notes (optional)"
-                                  className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+                                  className="w-full text-xs border border-gray-300 rounded px-2 py-1 bg-white"
                                   value={reviewNotes[`${task._id}-${submission.student._id}`] || ""}
                                   onChange={(e) => setReviewNotes(prev => ({
                                     ...prev,
@@ -326,24 +326,18 @@ const StartupTasks = () => {
                                   </button>
                                   <button
                                     onClick={() => handleApprove(task._id, submission.student._id, false)}
-                                    className="btn-danger text-xs px-3 py-1"
+                                    className="btn-ghost text-red-600 text-xs px-3 py-1"
                                   >
                                     Reject
                                   </button>
                                 </div>
                               </div>
                             )}
-
                             {submission.status === "approved" && (
-                              <div className="text-green-600 text-sm font-medium">
-                                ✓ Approved
-                              </div>
+                              <div className="text-green-700 text-sm font-medium">✓ Approved</div>
                             )}
-
                             {submission.status === "rejected" && (
-                              <div className="text-red-600 text-sm font-medium">
-                                ✗ Rejected
-                              </div>
+                              <div className="text-red-700 text-sm font-medium">✗ Rejected</div>
                             )}
                           </div>
                         ))}
@@ -353,12 +347,12 @@ const StartupTasks = () => {
 
                   {/* Assigned Student */}
                   {task.assignedStudent && (
-                    <div className="border-t pt-4">
+                    <div className="border-t border-gray-200 pt-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-900">
+                        <span className="text-sm font-medium text-primary-dark">
                           Assigned to:
                         </span>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-gray-700">
                           {task.assignedStudent.firstName} {task.assignedStudent.lastName}
                         </span>
                         <button
@@ -366,7 +360,7 @@ const StartupTasks = () => {
                           onClick={() => navigate(`/chat/${task.assignedStudent._id}`)}
                           title="Chat with student"
                         >
-                          <MessageSquare className="w-4 h-4 text-blue-600" />
+                          <MessageSquare className="w-4 h-4 text-primary-button" />
                         </button>
                       </div>
                     </div>
