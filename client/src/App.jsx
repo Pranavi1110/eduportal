@@ -3,6 +3,8 @@ import Chat from "./pages/Chat";
 import StartupProfile from "./pages/startup/StartupProfile";
 import PostTask from "./pages/startup/PostTask";
 import BrowseStudents from "./pages/startup/BrowseStudents";
+import Students from "./pages/startup/Students";
+import StudentProfile from "./pages/startup/StudentProfile";
 import Submissions from "./pages/startup/Submissions";
 import StartupTasks from "./pages/startup/StartupTasks";
 import React from "react";
@@ -223,6 +225,22 @@ const App = () => {
                   element={
                     <ProtectedRoute allowedUserTypes={["startup"]}>
                       <BrowseStudents />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/startup/students"
+                  element={
+                    <ProtectedRoute allowedUserTypes={["startup"]}>
+                      <Students />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/startup/students/:studentId"
+                  element={
+                    <ProtectedRoute allowedUserTypes={["startup"]}>
+                      <StudentProfile />
                     </ProtectedRoute>
                   }
                 />

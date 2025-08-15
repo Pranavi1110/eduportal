@@ -10,6 +10,7 @@ import {
   Briefcase,
   MessageSquare,
   Award,
+  Users,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -104,6 +105,19 @@ const Navbar = () => {
                   }`}
                 >
                   Submissions
+                </Link>
+              )}
+              {user?.userType === "startup" && (
+                <Link
+                  key="Students"
+                  to="/startup/students"
+                  className={`nav-link focus-visible-elegant ${
+                    isActive("/startup/students")
+                      ? "nav-link-active"
+                      : "nav-link-inactive"
+                  }`}
+                >
+                  Students
                 </Link>
               )}
             </div>
@@ -253,6 +267,21 @@ const Navbar = () => {
               >
                 <Briefcase className="mr-3 h-5 w-5" />
                 Submissions
+              </Link>
+            )}
+            {user?.userType === "startup" && (
+              <Link
+                key="Students"
+                to="/startup/students"
+                className={`flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+                  isActive("/startup/students")
+                    ? "text-primary-button bg-primary-card shadow-soft"
+                    : "text-gray-600 hover:text-primary-dark hover:bg-gray-50"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Users className="mr-3 h-5 w-5" />
+                Students
               </Link>
             )}
 
