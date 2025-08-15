@@ -34,6 +34,8 @@ import Profile from "./pages/Profile";
 import Tasks from "./pages/Tasks";
 import Messages from "./pages/Messages";
 import Certificates from "./pages/Certificates";
+const ForgotPassword = React.lazy(() => import("./pages/auth/ForgotPassword"));
+const ResetPassword = React.lazy(() => import("./pages/auth/ResetPassword"));
 
 // Create a client
 const queryClient = new QueryClient({
@@ -138,6 +140,26 @@ const App = () => {
                   element={
                     <PublicRoute>
                       <Register />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/forgot-password"
+                  element={
+                    <PublicRoute>
+                      <React.Suspense fallback={<div>Loading...</div>}>
+                        <ForgotPassword />
+                      </React.Suspense>
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/reset-password"
+                  element={
+                    <PublicRoute>
+                      <React.Suspense fallback={<div>Loading...</div>}>
+                        <ResetPassword />
+                      </React.Suspense>
                     </PublicRoute>
                   }
                 />

@@ -3,6 +3,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 
 const app = express();
 app.use(cors());
@@ -27,6 +29,24 @@ mongoose
 const User = require("./models/User");
 const jwt = require("jsonwebtoken");
 
+// Setup mail transporter using environment variables
+let mailTransporter = null;
+if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  mailTransporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587,
+    secure: process.env.SMTP_SECURE === "true",
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+} else {
+  console.warn(
+    "SMTP not configured. Forgot-password emails will be logged to console. Set SMTP_HOST/SMTP_USER/SMTP_PASS in .env to enable real emails."
+  );
+}
+
 // Register route
 app.post("/api/register", async (req, res) => {
   const { firstName, lastName, email, password, userType, companyName } =
@@ -48,6 +68,27 @@ app.post("/api/register", async (req, res) => {
 
     user = new User(newUserData);
     await user.save();
+
+    // Send welcome email
+    try {
+      const displayName = (user.firstName || user.companyName || user.email).trim();
+      const mailSubject = 'Welcome to Hubinity — Limitless Hustle, One Hub!';
+      const mailText = `Hi ${displayName},\n\nWelcome on board Hubinity – Limitless Hustle, One Hub! 🚀\nYou’ve just taken your first step toward connecting with amazing opportunities and changemakers.\n\nHere’s what’s next:\nComplete your profile so we can match you with the right opportunities.\nExplore the dashboard for posted tasks, startup listings, and student portfolios.\nStay active — the more you engage, the more badges, certificates, and gigs you can earn.\n\n🔑 Login to get started: \nWhether you’re here to showcase your skills or find passionate talent, we can’t wait to see your journey unfold.
+\nKeep Hustling,\nTeam Hubinity\nHubinity.in\nBuild. Hustle. Connect.`;
+
+      if (mailTransporter) {
+        await mailTransporter.sendMail({
+          from: process.env.SMTP_FROM || process.env.SMTP_USER,
+          to: user.email,
+          subject: mailSubject,
+          text: mailText,
+        });
+      } else {
+        console.log('Welcome email (not sent) to %s:\n%s', user.email, mailText);
+      }
+    } catch (emailErr) {
+      console.error('Error sending welcome email:', emailErr);
+    }
 
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
@@ -86,6 +127,96 @@ app.post("/api/login", async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Forgot password route - generate reset token, save to user (hashed) and send email with link
+app.post("/api/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Email is required" });
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Do not reveal whether the email exists
+      return res.status(200).json({
+        message:
+          "If an account with that email exists, a reset email has been sent.",
+      });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(20).toString("hex");
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+    const expire = Date.now() + 1000 * 60 * 60; // 1 hour
+
+    user.resetPasswordToken = resetTokenHash;
+    user.resetPasswordExpire = new Date(expire);
+    await user.save();
+
+    // Create reset URL - frontend route should handle resetting
+    const resetUrl = `${
+      process.env.FRONTEND_BASE_URL || "http://localhost:3000"
+    }/reset-password?token=${resetToken}&email=${encodeURIComponent(user.email)}`;
+
+    const mailSubject = "Hubinity - Password Reset";
+    const mailText = `Hello ${
+      user.firstName || user.email
+    },\n\nYou requested a password reset. Click the link below to reset your password (valid for 1 hour):\n\n${resetUrl}\n\nIf you did not request this, please ignore this email.`;
+
+    if (mailTransporter) {
+      const info = await mailTransporter.sendMail({
+        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+        to: user.email,
+        subject: mailSubject,
+        text: mailText,
+      });
+      console.log("Password reset email sent:", info.messageId);
+    } else {
+      console.log("Password reset link for %s: %s", user.email, resetUrl);
+    }
+
+    return res.status(200).json({
+      message:
+        "If an account with that email exists, a reset email has been sent.",
+    });
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Reset password route - verify token and set new password
+app.post("/api/reset-password", async (req, res) => {
+  const { email, token, password } = req.body;
+  if (!email || !token || !password)
+    return res.status(400).json({ message: "Email, token and new password are required" });
+
+  try {
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      email,
+      resetPasswordToken: tokenHash,
+      resetPasswordExpire: { $gt: Date.now() },
+    }).select("+password");
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    return res.status(200).json({ message: "Password has been reset successfully" });
+  } catch (err) {
+    console.error("Reset password error:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 });
 

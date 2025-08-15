@@ -186,7 +186,14 @@ const UserSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Certificate'
     }],
-    // badges, rating, completedTasks, totalEarnings removed
+    // Password reset token (hashed) and expiry
+    resetPasswordToken: {
+      type: String,
+      select: false,
+    },
+    resetPasswordExpire: {
+      type: Date,
+    },
   },
   {
     timestamps: true,

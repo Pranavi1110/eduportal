@@ -3,6 +3,7 @@ import { registerUser, loginUser } from "../routes/auth";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
+import api from "../services/api"; // Adjust the import based on your project structure
 
 export const useAuth = () => {
   const queryClient = useQueryClient();
@@ -108,3 +109,7 @@ export const useAuth = () => {
     isVerified: () => authData?.user?.isVerified || false,
   };
 };
+
+export async function forgotPassword(email) {
+  return api.post("/forgot-password", { email });
+}
