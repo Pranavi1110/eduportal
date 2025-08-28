@@ -168,7 +168,7 @@ router.patch("/notifications/:id/read", verifyJWT, async (req, res) => {
   }
 });
 
-// Post new task
+// Post new work
 router.post("/tasks", verifyJWT, async (req, res) => {
   try {
     const task = new Task({ ...req.body, startup: req.user.id });
@@ -179,7 +179,7 @@ router.post("/tasks", verifyJWT, async (req, res) => {
         recipient: task.assignedStudent,
         sender: req.user.id,
         type: "task-assigned",
-        message: `You have been assigned a new task: ${task.title}`,
+        message: `You have been assigned new work: ${task.title}`,
         link: "/tasks",
       });
       await notif.save();

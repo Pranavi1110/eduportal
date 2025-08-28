@@ -2,23 +2,54 @@ import React, { useState } from "react";
 import { toast } from "react-hot-toast";
 import api from "../../services/api";
 
-const categories = [
+const technicalCategories = [
   "development",
   "design",
+  "data-analysis",
+  "testing",
+  "devops",
+  "mobile-development",
+  "web-development",
+  "ai-ml",
+  "cybersecurity",
+  "database",
+  "api-development",
+  "cloud-computing",
+];
+
+const nonTechnicalCategories = [
   "marketing",
   "research",
   "writing",
-  "data-analysis",
+  "content-creation",
+  "social-media",
+  "business-development",
+  "sales",
+  "customer-support",
+  "project-management",
+  "hr-recruitment",
+  "finance-accounting",
+  "legal",
+  "operations",
+  "event-management",
+  "translation",
   "other",
 ];
+
+const workTypes = [
+  "technical",
+  "non-technical"
+];
+
 const difficulties = ["beginner", "intermediate", "advanced", "expert"];
 const priorities = ["low", "medium", "high", "urgent"];
 
-const PostTask = () => {
+const PostWork = () => {
   const [form, setForm] = useState({
     title: "",
     description: "",
     category: "",
+    workType: "",
     skills: "",
     difficulty: "",
     estimatedHours: "",
@@ -33,7 +64,23 @@ const PostTask = () => {
   const [selectedStudent, setSelectedStudent] = useState("");
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+    
+    // Reset category when work type changes
+    if (name === "workType") {
+      setForm(prev => ({ ...prev, [name]: value, category: "" }));
+    }
+  };
+
+  // Get categories based on selected work type
+  const getCategories = () => {
+    if (form.workType === "technical") {
+      return technicalCategories;
+    } else if (form.workType === "non-technical") {
+      return nonTechnicalCategories;
+    }
+    return [];
   };
 
   const handleFindStudents = async (e) => {
@@ -68,11 +115,12 @@ const PostTask = () => {
         payload.assignedStudent = selectedStudent;
       }
       await api.post("/startup/tasks", payload);
-      toast.success("Task posted!");
+      toast.success("Work posted!");
       setForm({
         title: "",
         description: "",
         category: "",
+        workType: "",
         skills: "",
         difficulty: "",
         estimatedHours: "",
@@ -84,14 +132,14 @@ const PostTask = () => {
       setStudents([]);
       setSelectedStudent("");
     } catch (e) {
-      toast.error("Failed to post task");
+      toast.error("Failed to post work");
     }
     setLoading(false);
   };
 
   return (
     <div className="max-w-xl mx-auto p-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold mb-4">Post New Task</h2>
+      <h2 className="text-2xl font-bold mb-4">Post New Work</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block font-medium">Title</label>
@@ -114,6 +162,23 @@ const PostTask = () => {
           />
         </div>
         <div>
+          <label className="block font-medium">Work Type</label>
+          <select
+            name="workType"
+            value={form.workType}
+            onChange={handleChange}
+            className="input-field"
+            required
+          >
+            <option value="">Select Work Type</option>
+            {workTypes.map((type) => (
+              <option key={type} value={type}>
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
           <label className="block font-medium">Category</label>
           <select
             name="category"
@@ -121,11 +186,17 @@ const PostTask = () => {
             onChange={handleChange}
             className="input-field"
             required
+            disabled={!form.workType}
           >
-            <option value="">Select</option>
-            {categories.map((c) => (
+            <option value="">
+              {form.workType 
+                ? `Select ${form.workType.charAt(0).toUpperCase() + form.workType.slice(1)} Category`
+                : "Select Work Type First"
+              }
+            </option>
+            {getCategories().map((c) => (
               <option key={c} value={c}>
-                {c}
+                {c.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
               </option>
             ))}
           </select>
@@ -152,42 +223,24 @@ const PostTask = () => {
         </div>
 
         {students.length > 0 && (
-          <div className="border rounded p-4 bg-gray-50">
+          <div>
             <label className="block font-medium mb-2">
-              Select Student to Assign
+              Available Students ({students.length})
             </label>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {students
-                .filter(
-                  (s) =>
-                    s.userType === "student" &&
-                    (s.firstName || s.lastName || s.username || s.name)
-                )
-                .map((s) => (
-                  <label
-                    key={s._id}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name="selectedStudent"
-                      value={s._id}
-                      checked={selectedStudent === s._id}
-                      onChange={() => setSelectedStudent(s._id)}
-                      required
-                    />
-                    <span className="font-semibold text-blue-700">
-                      {[s.firstName, s.lastName].filter(Boolean).join(" ") ||
-                        s.username ||
-                        s.name}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      Username:{" "}
-                      <span className="text-gray-700 font-bold">
-                        {s.username ||
-                          s.name ||
-                          [s.firstName, s.lastName].filter(Boolean).join(" ")}
-                      </span>
+            <div className="max-h-40 overflow-y-auto border rounded p-2 space-y-2">
+              {students.map((s) => (
+                <label key={s._id} className="flex items-start space-x-2">
+                  <input
+                    type="radio"
+                    name="selectedStudent"
+                    value={s._id}
+                    checked={selectedStudent === s._id}
+                    onChange={(e) => setSelectedStudent(e.target.value)}
+                    className="mt-1"
+                  />
+                  <span className="flex-1">
+                    <span className="font-medium">
+                      {s.firstName} {s.lastName}
                     </span>
                     <span className="text-xs text-gray-500">
                       Skills:{" "}
@@ -210,8 +263,9 @@ const PostTask = () => {
                         <span className="text-gray-400">No skills listed</span>
                       )}
                     </span>
-                  </label>
-                ))}
+                  </span>
+                </label>
+              ))}
             </div>
           </div>
         )}
@@ -240,11 +294,11 @@ const PostTask = () => {
         </div>
 
         <button type="submit" className="btn-primary" disabled={loading}>
-          {loading ? "Posting..." : "Post Task"}
+          {loading ? "Posting..." : "Post Work"}
         </button>
       </form>
     </div>
   );
 };
 
-export default PostTask;
+export default PostWork;

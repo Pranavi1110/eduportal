@@ -217,6 +217,15 @@ const Tasks = () => {
           <Briefcase className="w-3 h-3 mr-1" />
           {task.category}
         </span>
+        {task.workType && (
+          <span className={`text-xs px-2 py-1 rounded-full border ${
+            task.workType === 'technical' 
+              ? 'bg-blue-100 text-blue-800 border-blue-200' 
+              : 'bg-green-100 text-green-800 border-green-200'
+          }`}>
+            {task.workType.charAt(0).toUpperCase() + task.workType.slice(1)}
+          </span>
+        )}
         {task.skills?.slice(0, 3).map((skill, idx) => (
           <span
             key={idx}
@@ -413,18 +422,45 @@ const Tasks = () => {
           {/* Expanded Filters */}
           {showFilters && (
             <div className="mt-6 pt-6 border-t border-gray-200 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="input-field-elegant"
-              >
-                <option value="">All Categories</option>
-                <option value="development">Development</option>
-                <option value="design">Design</option>
-                <option value="marketing">Marketing</option>
-                <option value="research">Research</option>
-                <option value="content">Content</option>
-              </select>
+                             <select
+                 value={categoryFilter}
+                 onChange={(e) => setCategoryFilter(e.target.value)}
+                 className="input-field-elegant"
+               >
+                 <option value="">All Categories</option>
+                 <optgroup label="Technical Categories">
+                   <option value="development">Development</option>
+                   <option value="design">Design</option>
+                   <option value="data-analysis">Data Analysis</option>
+                   <option value="testing">Testing</option>
+                   <option value="devops">DevOps</option>
+                   <option value="mobile-development">Mobile Development</option>
+                   <option value="web-development">Web Development</option>
+                   <option value="ai-ml">AI/ML</option>
+                   <option value="cybersecurity">Cybersecurity</option>
+                   <option value="database">Database</option>
+                   <option value="api-development">API Development</option>
+                   <option value="cloud-computing">Cloud Computing</option>
+                 </optgroup>
+                 <optgroup label="Non-Technical Categories">
+                   <option value="marketing">Marketing</option>
+                   <option value="research">Research</option>
+                   <option value="writing">Writing</option>
+                   <option value="content-creation">Content Creation</option>
+                   <option value="social-media">Social Media</option>
+                   <option value="business-development">Business Development</option>
+                   <option value="sales">Sales</option>
+                   <option value="customer-support">Customer Support</option>
+                   <option value="project-management">Project Management</option>
+                   <option value="hr-recruitment">HR/Recruitment</option>
+                   <option value="finance-accounting">Finance/Accounting</option>
+                   <option value="legal">Legal</option>
+                   <option value="operations">Operations</option>
+                   <option value="event-management">Event Management</option>
+                   <option value="translation">Translation</option>
+                   <option value="other">Other</option>
+                 </optgroup>
+               </select>
 
               <input
                 type="date"

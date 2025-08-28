@@ -1,7 +1,7 @@
 // ...existing code...
 import Chat from "./pages/Chat";
 import StartupProfile from "./pages/startup/StartupProfile";
-import PostTask from "./pages/startup/PostTask";
+import PostWork from "./pages/startup/PostWork";
 import BrowseStudents from "./pages/startup/BrowseStudents";
 import Students from "./pages/startup/Students";
 import StudentProfile from "./pages/startup/StudentProfile";
@@ -235,10 +235,10 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="/startup/post-task"
+                  path="/startup/post-work"
                   element={
                     <ProtectedRoute allowedUserTypes={["startup"]}>
-                      <PostTask />
+                      <PostWork />
                     </ProtectedRoute>
                   }
                 />

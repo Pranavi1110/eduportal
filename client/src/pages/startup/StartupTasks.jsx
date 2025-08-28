@@ -33,7 +33,7 @@ const StartupTasks = () => {
       setTasks(res.data);
     } catch (err) {
       console.error("Error fetching tasks:", err);
-      toast.error("Failed to fetch tasks");
+      toast.error("Failed to fetch works");
     }
     setLoading(false);
   };
@@ -56,7 +56,7 @@ const StartupTasks = () => {
         approve, 
         reviewNotes: notes 
       });
-      toast.success(approve ? "Task approved!" : "Task rejected");
+      toast.success(approve ? "Work approved!" : "Work rejected");
       setReviewNotes(prev => {
         const newNotes = { ...prev };
         delete newNotes[`${taskId}-${studentId}`];
@@ -117,7 +117,7 @@ const StartupTasks = () => {
   });
 
   const tabs = [
-    { id: "all", label: "All Tasks", count: tasksWithComputed.length },
+    { id: "all", label: "All Works", count: tasksWithComputed.length },
     { id: "open", label: "Open", count: tasksWithComputed.filter((t) => t._uiStatus === "open").length },
     { id: "under-review", label: "Under Review", count: tasksWithComputed.filter((t) => t._uiStatus === "under-review").length },
     { id: "completed", label: "Completed", count: tasksWithComputed.filter((t) => t._uiStatus === "completed").length },
@@ -134,7 +134,7 @@ const StartupTasks = () => {
   return (
     <>
       <Helmet>
-        <title>My Tasks - Startup Dashboard</title>
+        <title>My Works - Startup Dashboard</title>
       </Helmet>
 
       <div className="min-h-screen bg-primary-white">
@@ -143,17 +143,17 @@ const StartupTasks = () => {
           <div className="container-responsive py-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl md:text-4xl font-garamond font-bold">My Tasks</h1>
+                <h1 className="text-3xl md:text-4xl font-garamond font-bold">My Works</h1>
                 <p className="text-base md:text-lg text-gray-200 mt-1">
-                  Manage tasks posted by your startup
+                  Manage works posted by your startup
                 </p>
               </div>
               <button
                 className="btn-primary"
-                onClick={() => navigate("/startup/post-task")}
+                onClick={() => navigate("/startup/post-work")}
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Post New Task
+                Post New Work
               </button>
             </div>
           </div>
@@ -182,17 +182,17 @@ const StartupTasks = () => {
             </nav>
           </div>
 
-          {/* Tasks Grid */}
+          {/* Works Grid */}
           {filteredTasks.length === 0 ? (
             <div className="text-center py-16 card-elegant">
               <div className="text-gray-500 text-lg">
-                No tasks found in this category.
+                No works found in this category.
               </div>
               <button
                 className="mt-6 btn-primary"
-                onClick={() => navigate("/startup/post-task")}
+                onClick={() => navigate("/startup/post-work")}
               >
-                Post Your First Task
+                Post Your First Work
               </button>
             </div>
           ) : (
@@ -202,7 +202,7 @@ const StartupTasks = () => {
                   key={task._id}
                   className="card-elegant"
                 >
-                  {/* Task Header */}
+                  {/* Work Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-primary-dark mb-2">
@@ -230,12 +230,21 @@ const StartupTasks = () => {
                     </button>
                   </div>
 
-                  {/* Task Details */}
+                  {/* Work Details */}
                   <div className="mb-4">
                     <div className="flex flex-wrap gap-2 mb-3">
                       <span className="bg-primary-card text-primary-dark text-xs px-2 py-1 rounded border border-gray-200">
                         {task.category}
                       </span>
+                      {task.workType && (
+                        <span className={`text-xs px-2 py-1 rounded border ${
+                          task.workType === 'technical' 
+                            ? 'bg-blue-100 text-blue-800 border-blue-200' 
+                            : 'bg-green-100 text-green-800 border-green-200'
+                        }`}>
+                          {task.workType.charAt(0).toUpperCase() + task.workType.slice(1)}
+                        </span>
+                      )}
                       {task.skills?.map((skill, idx) => (
                         <span
                           key={idx}

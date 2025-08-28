@@ -241,10 +241,10 @@ const StartupDashboard = () => {
                 </button>
                 <button
                   className="btn-primary"
-                  onClick={() => navigate("/startup/post-task")}
+                  onClick={() => navigate("/startup/post-work")}
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Post New Task
+                  Post New Work
                 </button>
               </div>
             </div>
@@ -461,7 +461,7 @@ const StartupDashboard = () => {
                     onClick={() => navigate("/startup/tasks")}
                   >
                     <Briefcase className="w-5 h-5 text-primary-button mr-3" />
-                    <span>View My Tasks</span>
+                    <span>View My Works</span>
                   </button>
                   <button
                     className="w-full flex items-center p-3 text-left hover:bg-primary-card rounded-lg transition-colors"
