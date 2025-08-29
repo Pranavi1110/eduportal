@@ -58,6 +58,7 @@ router.get("/tasks", verifyJWT, async (req, res) => {
 
     let tasks = await Task.find(query)
       .populate("assignedStudent", "firstName lastName email username")
+      .populate({ path: "startup", select: "companyName firstName lastName email profilePicture companyLogo" , model: "User" })
       .populate("submissions.student", "firstName lastName email username")
       .sort({ createdAt: -1 });
 
@@ -171,7 +172,12 @@ router.patch("/notifications/:id/read", verifyJWT, async (req, res) => {
 // Post new work
 router.post("/tasks", verifyJWT, async (req, res) => {
   try {
-    const task = new Task({ ...req.body, startup: req.user.id });
+    // If frontend provided imageUrl, map it into attachments for compatibility
+    const body = { ...req.body, startup: req.user.id };
+    if (body.imageUrl && (!body.attachments || body.attachments.length === 0)) {
+      body.attachments = [{ name: 'image', url: body.imageUrl }];
+    }
+    const task = new Task(body);
     await task.save();
 
     if (task.assignedStudent) {
@@ -513,9 +519,10 @@ router.post("/tasks/:taskId/review", verifyJWT, async (req, res) => {
 // Get all startups
 router.get("/all", async (req, res) => {
   try {
+    // Return basic fields plus profilePicture so frontend can render logos
     const startups = await User.find(
       { userType: "startup" },
-      "_id companyName email"
+      "_id companyName email profilePicture companyLogo"
     );
     res.json(startups);
   } catch (error) {

@@ -16,6 +16,12 @@ app.use(
   express.static(path.join(__dirname, "certificates"))
 );
 
+// Serve uploaded files (avatars etc.)
+app.use(
+  "/api/uploads",
+  express.static(path.join(__dirname, "uploads"))
+);
+
 // MongoDB connection
 mongoose
   .connect(process.env.MONGODB_URI, {
@@ -225,10 +231,12 @@ const studentRoutes = require("./routes/student");
 const startupRoutes = require("./routes/startup");
 const chatRoutes = require("./routes/chat");
 const usersRoutes = require("./routes/users");
+const uploadsRoutes = require("./routes/uploads");
 app.use("/api/student", studentRoutes);
 app.use("/api/startup", startupRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/uploads", uploadsRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

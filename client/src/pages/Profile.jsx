@@ -53,6 +53,7 @@ const Profile = () => {
         skills: data.user.skills || [],
         college: data.user.college || "",
         collegeEmail: data.user.collegeEmail || "",
+        profilePicture: data.user.profilePicture || "",
         // completedTasks, totalEarnings, rating removed
       });
     } else if (data && !data.user) {
@@ -63,6 +64,7 @@ const Profile = () => {
         skills: [],
         college: "",
         collegeEmail: "",
+        profilePicture: "",
         // completedTasks, totalEarnings, rating removed
       });
     }
@@ -172,6 +174,55 @@ const Profile = () => {
       <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow mt-8">
         <h2 className="text-2xl font-bold mb-4">Startup Profile</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Profile picture upload for startup */}
+          <div className="mb-4">
+            <label className="block font-semibold mb-1">Profile picture</label>
+            <div className="flex items-center gap-4">
+              <img
+                src={
+                  form?.profilePicture || user?.profilePicture || "/vite.svg"
+                }
+                alt="Preview"
+                className="w-16 h-16 rounded-full object-cover border"
+                onError={(e) => (e.target.src = "/vite.svg")}
+              />
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files && e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () =>
+                      setForm((f) => ({ ...f, profilePicture: reader.result }));
+                    reader.readAsDataURL(file);
+
+                    try {
+                      const formData = new FormData();
+                      formData.append("avatar", file);
+                      const res = await fetch("/api/uploads/avatar", {
+                        method: "POST",
+                        body: formData,
+                      });
+                      const json = await res.json();
+                      if (res.ok && json.url)
+                        setForm((f) => ({ ...f, profilePicture: json.url }));
+                      else throw new Error(json.error || "Upload failed");
+                    } catch (err) {
+                      console.error("Upload error", err);
+                      alert("Failed to upload image");
+                    }
+                  }}
+                />
+                <div className="text-xs text-gray-500 mt-1">
+                  Upload a square image for best results. File will be stored on
+                  the server.
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="mb-4">
             <label className="block font-semibold mb-1">Company Name</label>
             <input
@@ -273,6 +324,59 @@ const Profile = () => {
       <h2 className="text-2xl font-bold mb-4">
         {data && data.user == null ? "Add Profile" : "Edit Profile"}
       </h2>
+      {/* Profile picture upload */}
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Profile picture</label>
+        <div className="flex items-center gap-4">
+          <img
+            src={form.profilePicture || user?.profilePicture || "/vite.svg"}
+            alt="Preview"
+            className="w-16 h-16 rounded-full object-cover border"
+            onError={(e) => (e.target.src = "/vite.svg")}
+          />
+          <div className="flex-1">
+            <input
+              type="file"
+              accept="image/*"
+              name="avatar"
+              onChange={async (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+                // show temporary preview
+                const reader = new FileReader();
+                reader.onload = () => {
+                  setForm((f) => ({ ...f, profilePicture: reader.result }));
+                };
+                reader.readAsDataURL(file);
+
+                // upload to server
+                try {
+                  const formData = new FormData();
+                  formData.append("avatar", file);
+                  const res = await fetch("/api/uploads/avatar", {
+                    method: "POST",
+                    body: formData,
+                  });
+                  const json = await res.json();
+                  if (res.ok && json.url) {
+                    setForm((f) => ({ ...f, profilePicture: json.url }));
+                  } else {
+                    throw new Error(json.error || "Upload failed");
+                  }
+                } catch (err) {
+                  console.error("Upload error", err);
+                  alert("Failed to upload image");
+                }
+              }}
+              className=""
+            />
+            <div className="text-xs text-gray-500 mt-1">
+              Upload a square image for best results. File will be stored on the
+              server.
+            </div>
+          </div>
+        </div>
+      </div>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* College */}
         <div>

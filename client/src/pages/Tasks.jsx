@@ -1,48 +1,148 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "../hooks/useAuth";
 import api from "../services/api";
+import { fetchAllStudents } from "../services/students";
 import toast from "react-hot-toast";
 import {
   Search,
   Filter,
   Calendar,
   Briefcase,
-  Users,
   CheckCircle,
   Clock,
   AlertCircle,
-  MessageSquare,
   Plus,
-  ArrowRight,
-  Download,
-  Eye,
   Star,
   TrendingUp,
-  Award,
 } from "lucide-react";
-
+import Avatar from "../components/common/Avatar";
 const Tasks = () => {
   const { user } = useAuth();
-  const [assignedTasks, setAssignedTasks] = useState([]);
-  const [allTasks, setAllTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [submission, setSubmission] = useState({});
-  const [submitting, setSubmitting] = useState({});
-  const [searchTerm, setSearchTerm] = useState("");
 
-  // Filter/sort states
+  const [loading, setLoading] = useState(true);
+  const [allTasks, setAllTasks] = useState([]);
+  const [assignedTasks, setAssignedTasks] = useState([]);
+  const [startupProfile, setStartupProfile] = useState(null);
+
+  const [students, setStudents] = useState([]);
+  const [studentsLoading, setStudentsLoading] = useState(true);
+  const [studentsDisplayCount, setStudentsDisplayCount] = useState(12);
+
+  const [expandedTasks, setExpandedTasks] = useState({});
+  const [lightboxImages, setLightboxImages] = useState([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [deadlineFilter, setDeadlineFilter] = useState("");
   const [startupFilter, setStartupFilter] = useState("");
   const [sortBy, setSortBy] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
+  const [submission, setSubmission] = useState({});
+  const [submitting, setSubmitting] = useState({});
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      setLoading(true);
+      try {
+        if (user?.userType === "startup") {
+          const res = await api.get(`/startup/tasks`);
+          setAllTasks(res.data || []);
+          setAssignedTasks([]);
+          // fetch startup profile for header
+          try {
+            const p = await api.get(`/startup/dashboard`);
+            setStartupProfile(p.data.startup || p.data);
+          } catch (e) {
+            console.warn("Failed to fetch startup profile", e);
+          }
+        } else {
+          const assignedRes = await api.get(`/student/dashboard`);
+          setAssignedTasks((assignedRes.data && assignedRes.data.tasks) || []);
+          const allRes = await api.get(`/student/tasks/all`);
+          setAllTasks(allRes.data || []);
+        }
+      } catch (err) {
+        console.error("Error fetching tasks", err);
+      }
+      setLoading(false);
+    };
+
+    const fetchStudents = async () => {
+      setStudentsLoading(true);
+      try {
+        const data = await fetchAllStudents();
+        setStudents(Array.isArray(data) ? data : data?.users || []);
+      } catch (err) {
+        console.error("Failed to fetch students", err);
+        setStudents([]);
+      }
+      setStudentsLoading(false);
+    };
+
+    if (user) {
+      fetchTasks();
+      fetchStudents();
+    }
+  }, [user]);
+
+  // ... rest of component functions and render logic follow unchanged
+
+  const formatSkill = (s) => (typeof s === "string" ? s : s.name || "");
+
+  const filterAndSortTasks = (tasks) => {
+    let updated = [...tasks];
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      updated = updated.filter((task) => {
+        const skillStrings = (task.skills || []).map((s) => formatSkill(s));
+        return [task.title, task.description, task.category, ...skillStrings]
+          .filter(Boolean)
+          .some((field) => String(field).toLowerCase().includes(term));
+      });
+    }
+    if (categoryFilter) {
+      updated = updated.filter(
+        (task) => task.category?.toLowerCase() === categoryFilter.toLowerCase()
+      );
+    }
+    if (deadlineFilter) {
+      updated = updated.filter(
+        (task) => new Date(task.deadline) <= new Date(deadlineFilter)
+      );
+    }
+    if (startupFilter) {
+      updated = updated.filter((task) =>
+        startupFilter === "true" ? !!task.startup : !task.startup
+      );
+    }
+    if (sortBy === "deadline") {
+      updated.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+    } else if (sortBy === "title") {
+      updated.sort((a, b) => a.title.localeCompare(b.title));
+    }
+    return updated;
+  };
+
+  const toggleExpand = (id) =>
+    setExpandedTasks((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  const openLightbox = (images, idx = 0) => {
+    setLightboxImages(images || []);
+    setLightboxIndex(idx || 0);
+    setLightboxOpen(true);
+  };
+  const closeLightbox = () => setLightboxOpen(false);
+  const prevLightbox = () => setLightboxIndex((i) => Math.max(0, i - 1));
+  const nextLightbox = () =>
+    setLightboxIndex((i) => Math.min(lightboxImages.length - 1, i + 1));
+
   const handleInput = (taskId, value) => {
-    setSubmission((prev) => ({
-      ...prev,
-      [taskId]: value,
-    }));
+    setSubmission((prev) => ({ ...prev, [taskId]: value }));
   };
 
   const handleSubmit = async (e, taskId) => {
@@ -65,80 +165,6 @@ const Tasks = () => {
     setSubmitting((prev) => ({ ...prev, [taskId]: false }));
   };
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      setLoading(true);
-      try {
-        if (user?.userType === "startup") {
-          // For startups: fetch only tasks posted by this startup
-          const startupTasksRes = await api.get(`/startup/tasks`);
-          console.log("Startup tasks response:", startupTasksRes.data);
-          setAllTasks(startupTasksRes.data || []);
-          setAssignedTasks([]); // Startups don't have assigned tasks
-        } else {
-          // For students: fetch assigned tasks and all available tasks
-          const assignedRes = await api.get(`/student/dashboard`);
-          setAssignedTasks(assignedRes.data.tasks || []);
-
-          const allRes = await api.get(`/student/tasks/all`);
-          setAllTasks(allRes.data || []);
-        }
-      } catch (e) {
-        console.error("Error fetching tasks:", e);
-      }
-      setLoading(false);
-    };
-    
-    if (user) {
-      fetchTasks();
-    }
-  }, [user]);
-
-  // Main filter + sort function
-  const filterAndSortTasks = (tasks) => {
-    let updated = [...tasks];
-
-    // Search filter
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase();
-      updated = updated.filter((task) =>
-        [task.title, task.description, task.category, ...(task.skills || [])]
-          .filter(Boolean)
-          .some((field) => field.toLowerCase().includes(term))
-      );
-    }
-
-    // Category filter
-    if (categoryFilter) {
-      updated = updated.filter(
-        (task) => task.category?.toLowerCase() === categoryFilter.toLowerCase()
-      );
-    }
-
-    // Deadline filter
-    if (deadlineFilter) {
-      updated = updated.filter(
-        (task) => new Date(task.deadline) <= new Date(deadlineFilter)
-      );
-    }
-
-    // Startup filter
-    if (startupFilter) {
-      updated = updated.filter((task) =>
-        startupFilter === "true" ? !!task.startup : !task.startup
-      );
-    }
-
-    // Sorting
-    if (sortBy === "deadline") {
-      updated.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
-    } else if (sortBy === "title") {
-      updated.sort((a, b) => a.title.localeCompare(b.title));
-    }
-
-    return updated;
-  };
-
   const getStatusIcon = (status) => {
     switch (status) {
       case "completed":
@@ -146,222 +172,301 @@ const Tasks = () => {
       case "submitted":
         return <AlertCircle className="w-5 h-5 text-yellow-700" />;
       case "under-review":
-        return <Clock className="w-5 h-5 text-orange-700" />;
+        return <Clock className="w-5 h-5 text-orange-600" />;
       default:
-        return <Clock className="w-5 h-5 text-gray-700" />;
+        return null;
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
       case "completed":
-        return "bg-green-100 text-green-800 border-green-300";
+        return "bg-green-100 text-green-700 border-green-200";
       case "submitted":
-        return "bg-yellow-100 text-yellow-800 border-yellow-300";
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
       case "under-review":
-        return "bg-orange-100 text-orange-800 border-orange-300";
+        return "bg-orange-100 text-orange-700 border-orange-200";
+      case "rejected":
+        return "bg-red-100 text-red-700 border-red-200";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-300";
+        return "bg-primary-card text-gray-700 border-gray-200";
     }
   };
 
-  const renderTaskCard = (task, isAssigned) => (
-    <div
-      key={task._id}
-      className="card-elegant p-6 group"
-    >
-      {/* Header with status */}
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center gap-3">
-          {getStatusIcon(task.status)}
-          <span
-            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-              task.status
-            )}`}
-          >
-            {user?.userType === "startup" && task.submissions && task.submissions.length > 0 ? (
-              (() => {
-                const hasPending = task.submissions.some(s => s.status === "pending");
-                const hasUnderReview = task.submissions.some(s => s.status === "under-review");
-                const hasApproved = task.submissions.some(s => s.status === "approved");
-                const allRejected = task.submissions.every(s => s.status === "rejected");
-                
-                if (hasApproved) return "completed";
-                if (hasUnderReview) return "under-review";
-                if (hasPending) return "submitted";
-                if (allRejected) return "rejected";
-                return task.status;
-              })()
-            ) : (
-              task.status
-            )}
-          </span>
-        </div>
-        <div className="text-xs text-gray-600 bg-primary-card px-2 py-1 rounded-full border border-gray-200">
-          <Calendar className="w-3 h-3 inline mr-1" />
-          {new Date(task.deadline).toLocaleDateString()}
-        </div>
-      </div>
+  const renderTaskCard = (task, isAssigned) => {
+    const images = [];
+    if (task.imageUrl) images.push(task.imageUrl);
+    if (task.attachments && task.attachments.length > 0) {
+      task.attachments.forEach((a) => {
+        if (a.url && !images.includes(a.url)) images.push(a.url);
+      });
+    }
 
-      {/* Task title and description */}
-      <h3 className="font-bold text-xl text-primary-dark mb-3 group-hover:text-primary-button transition-colors">
-        {task.title}
-      </h3>
-      <p className="text-gray-700 text-sm mb-4 line-clamp-3 leading-relaxed">
-        {task.description}
-      </p>
-
-      {/* Tags */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <span className="badge-secondary text-xs">
-          <Briefcase className="w-3 h-3 mr-1" />
-          {task.category}
-        </span>
-        {task.workType && (
-          <span className={`text-xs px-2 py-1 rounded-full border ${
-            task.workType === 'technical' 
-              ? 'bg-blue-100 text-blue-800 border-blue-200' 
-              : 'bg-green-100 text-green-800 border-green-200'
-          }`}>
-            {task.workType.charAt(0).toUpperCase() + task.workType.slice(1)}
-          </span>
-        )}
-        {task.skills?.slice(0, 3).map((skill, idx) => (
-          <span
-            key={idx}
-            className="badge-secondary text-xs"
-          >
-            <Star className="w-3 h-3 mr-1" />
-            {skill}
-          </span>
-        ))}
-        {task.skills?.length > 3 && (
-          <span className="badge-secondary text-xs">
-            +{task.skills.length - 3} more
-          </span>
-        )}
-      </div>
-
-      {/* Task details */}
-      <div className="space-y-2 mb-4 text-sm">
-        {user?.userType === "student" && (
-          <div className="flex items-center gap-2 text-gray-700">
-            <Users className="w-4 h-4" />
-            <span>From: <span className="font-semibold">{task.startup?.companyName || "Unknown"}</span></span>
+    return (
+      <div key={task._id} className="card-elegant p-6 group">
+        <div className="flex items-start gap-4 mb-4">
+          <div className="flex-shrink-0">
+            {(() => {
+              const startup = task.startup;
+              const imgSrc =
+                startup && typeof startup === "object"
+                  ? startup.profilePicture ||
+                    startup.logo ||
+                    startup.companyLogo ||
+                    startup.avatar ||
+                    ""
+                  : "";
+              const name =
+                startup?.companyName || startup?.firstName || "Company";
+              const initials = name
+                .split(" ")
+                .map((w) => w.charAt(0))
+                .slice(0, 2)
+                .join("")
+                .toUpperCase();
+              return imgSrc ? (
+                <img
+                  src={imgSrc}
+                  alt={name}
+                  className="w-16 h-16 rounded-lg object-cover border border-gray-200 bg-gray-50"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.style.display = "none";
+                  }}
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center text-lg font-semibold text-primary-dark border border-gray-200">
+                  {initials}
+                </div>
+              );
+            })()}
           </div>
-        )}
-        {user?.userType === "startup" && task.assignedStudent && (
-          <div className="flex items-center gap-2 text-gray-700">
-            <Users className="w-4 h-4" />
-            <span>Assigned to: <span className="font-semibold">{task.assignedStudent.firstName} {task.assignedStudent.lastName}</span></span>
-          </div>
-        )}
-      </div>
 
-      {/* Submission form - only for students */}
-      {user?.userType === "student" && (
-        <div className="mt-6">
-          {task.status === "open" ? (
-            <form
-              className="space-y-3"
-              onSubmit={(e) => handleSubmit(e, task._id)}
-            >
-              <input
-                type="url"
-                placeholder="Submit your work link"
-                className="input-field-elegant text-sm"
-                value={submission[task._id] || ""}
-                onChange={(e) => handleInput(task._id, e.target.value)}
-                required
-              />
-              <button
-                type="submit"
-                className="btn-primary w-full"
-                disabled={submitting[task._id]}
-              >
-                {submitting[task._id] ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-dark mr-2"></div>
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    {/* <Download className="w-4 h-4 mr-2" /> */}
-                    Submit Task
-                  </>
-                )}
-              </button>
-            </form>
-          ) : task.status === "submitted" ? (
-            <div className="text-center py-4 bg-yellow-50 rounded-lg border border-yellow-200">
-              <AlertCircle className="w-6 h-6 text-yellow-700 mx-auto mb-2" />
-              <div className="text-yellow-800 font-semibold">Link Submitted - Awaiting Review</div>
-            </div>
-          ) : task.status === "under-review" ? (
-            <div className="text-center py-4 bg-orange-50 rounded-lg border border-orange-200">
-              <Clock className="w-6 h-6 text-orange-700 mx-auto mb-2" />
-              <div className="text-orange-800 font-semibold">Under Review - Please Wait</div>
-            </div>
-          ) : task.status === "completed" ? (
-            <div className="text-center py-4 bg-green-50 rounded-lg border border-green-200">
-              <CheckCircle className="w-6 h-6 text-green-700 mx-auto mb-2" />
-              <div className="text-green-800 font-semibold">✓ Task Completed</div>
-            </div>
-          ) : task.status === "rejected" ? (
-            <div className="text-center py-4 bg-red-50 rounded-lg border border-red-200">
-              <AlertCircle className="w-6 h-6 text-red-700 mx-auto mb-2" />
-              <div className="text-red-800 font-semibold">✗ Task Rejected</div>
-            </div>
-          ) : (
-            <div className="text-center py-4 bg-primary-card rounded-lg border border-gray-200">
-              <div className="text-gray-700 font-semibold">{task.status}</div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* For startups: Show submission count and status */}
-      {user?.userType === "startup" && (
-        <div className="mt-6">
-          <div className="flex items-center gap-2 text-sm text-gray-700 mb-3">
-            <TrendingUp className="w-4 h-4" />
-            <span>Submissions: <span className="font-semibold">{task.submissions?.length || 0}</span></span>
-          </div>
-          {task.submissions && task.submissions.length > 0 && (
-            <div className="space-y-2">
-              {task.submissions.map((submission, index) => {
-                let studentName = "Unknown Student";
-                if (submission.student) {
-                  if (submission.student.firstName && submission.student.lastName) {
-                    studentName = `${submission.student.firstName} ${submission.student.lastName}`;
-                  } else if (submission.student.firstName) {
-                    studentName = submission.student.firstName;
-                  } else if (submission.student.lastName) {
-                    studentName = submission.student.lastName;
-                  } else if (submission.student.username) {
-                    studentName = submission.student.username;
-                  } else if (submission.student.email) {
-                    studentName = submission.student.email.split('@')[0];
-                  }
-                }
-                
-                return (
-                  <div key={index} className="bg-primary-card rounded-lg p-3 text-xs border border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-primary-dark">{studentName}</span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(submission.status)}`}>
-                        {submission.status}
-                      </span>
-                    </div>
+          <div className="flex-1">
+            <div className="flex justify-between items-start mb-2">
+              <div className="flex items-center gap-3">
+                {getStatusIcon(task.status)}
+                <div>
+                  <div className="text-sm text-gray-600">
+                    Posted by{" "}
+                    {task.startup?.companyName ||
+                      task.startup?.firstName ||
+                      "Unknown"}
                   </div>
-                );
-              })}
+                  <h3 className="font-bold text-lg text-primary-dark group-hover:text-primary-button transition-colors">
+                    {task.title}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="text-xs text-gray-600 bg-primary-card px-2 py-1 rounded-full border border-gray-200">
+                <Calendar className="w-3 h-3 inline mr-1" />
+                {task.deadline
+                  ? new Date(task.deadline).toLocaleDateString()
+                  : "-"}
+              </div>
             </div>
-          )}
+
+            <div className="mb-3">
+              <p
+                className="text-gray-700 text-sm leading-relaxed"
+                style={
+                  expandedTasks[task._id]
+                    ? {}
+                    : {
+                        overflow: "hidden",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: "vertical",
+                      }
+                }
+              >
+                {task.description}
+              </p>
+
+              {images.length > 0 && (
+                <div
+                  className={`mt-3 ${
+                    expandedTasks[task._id] ? "mb-3" : "mb-0"
+                  }`}
+                >
+                  <img
+                    src={images[0]}
+                    alt={task.title}
+                    role="button"
+                    onClick={() => openLightbox(images, 0)}
+                    className={`w-full cursor-pointer ${
+                      expandedTasks[task._id]
+                        ? "max-h-64 object-cover"
+                        : "max-h-28 object-cover rounded-md"
+                    } rounded-md border border-gray-100`}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/vite.svg";
+                    }}
+                  />
+                </div>
+              )}
+
+              {task.description && (
+                <button
+                  type="button"
+                  onClick={() => toggleExpand(task._id)}
+                  className="text-sm text-primary-button mt-2"
+                  aria-expanded={!!expandedTasks[task._id]}
+                >
+                  {expandedTasks[task._id] ? "Show less" : "Read more"}
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2 mb-3">
+              <span className="badge-secondary text-xs">
+                <Briefcase className="w-3 h-3 mr-1" />
+                {task.category}
+              </span>
+              {task.workType && (
+                <span
+                  className={`text-xs px-2 py-1 rounded-full border ${
+                    task.workType === "technical"
+                      ? "bg-blue-100 text-blue-800 border-blue-200"
+                      : "bg-green-100 text-green-800 border-green-200"
+                  }`}
+                >
+                  {task.workType.charAt(0).toUpperCase() +
+                    task.workType.slice(1)}
+                </span>
+              )}
+              {task.skills?.slice(0, 3).map((skill, idx) => (
+                <span key={idx} className="badge-secondary text-xs">
+                  <Star className="w-3 h-3 mr-1" />
+                  {formatSkill(skill)}
+                </span>
+              ))}
+              {task.skills?.length > 3 && (
+                <span className="badge-secondary text-xs">
+                  +{task.skills.length - 3} more
+                </span>
+              )}
+            </div>
+
+            {user?.userType === "student" && (
+              <div className="mt-2">
+                {task.status === "open" ? (
+                  <form
+                    className="space-y-3"
+                    onSubmit={(e) => handleSubmit(e, task._id)}
+                  >
+                    <input
+                      type="url"
+                      placeholder="Submit your work link"
+                      className="input-field-elegant text-sm"
+                      value={submission[task._id] || ""}
+                      onChange={(e) => handleInput(task._id, e.target.value)}
+                      required
+                    />
+                    <button
+                      type="submit"
+                      className="btn-primary w-full"
+                      disabled={submitting[task._id]}
+                    >
+                      {submitting[task._id] ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-dark mr-2"></div>
+                          Submitting...
+                        </>
+                      ) : (
+                        <>Submit Task</>
+                      )}
+                    </button>
+                  </form>
+                ) : (
+                  <div
+                    className={`text-center py-4 rounded-lg border ${
+                      task.status === "submitted"
+                        ? "bg-yellow-50 border-yellow-200 text-yellow-800"
+                        : task.status === "completed"
+                        ? "bg-green-50 border-green-200 text-green-800"
+                        : "bg-primary-card border-gray-200 text-gray-700"
+                    }`}
+                  >
+                    {task.status === "submitted" ? (
+                      <>
+                        <AlertCircle className="w-6 h-6 text-yellow-700 mx-auto mb-2" />
+                        <div className="font-semibold">
+                          Link Submitted - Awaiting Review
+                        </div>
+                      </>
+                    ) : task.status === "under-review" ? (
+                      <>
+                        <Clock className="w-6 h-6 text-orange-700 mx-auto mb-2" />
+                        <div className="font-semibold">
+                          Under Review - Please Wait
+                        </div>
+                      </>
+                    ) : task.status === "completed" ? (
+                      <>
+                        <CheckCircle className="w-6 h-6 text-green-700 mx-auto mb-2" />
+                        <div className="font-semibold">✓ Task Completed</div>
+                      </>
+                    ) : (
+                      <div className="font-semibold">{task.status}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {user?.userType === "startup" &&
+              task.submissions &&
+              task.submissions.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-gray-700 mb-2">
+                    <TrendingUp className="w-4 h-4" />
+                    <span>
+                      Submissions:{" "}
+                      <span className="font-semibold">
+                        {task.submissions.length}
+                      </span>
+                    </span>
+                  </div>
+                  {task.submissions.map((submissionItem, index) => {
+                    let studentName = "Unknown Student";
+                    if (submissionItem.student) {
+                      const st = submissionItem.student;
+                      studentName =
+                        (st.firstName ||
+                          st.username ||
+                          st.email?.split("@")[0]) +
+                        (st.lastName ? ` ${st.lastName}` : "");
+                    }
+                    return (
+                      <div
+                        key={index}
+                        className="bg-primary-card rounded-lg p-3 text-xs border border-gray-200"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-primary-dark">
+                            {studentName}
+                          </span>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                              submissionItem.status
+                            )}`}
+                          >
+                            {submissionItem.status}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+          </div>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -384,20 +489,20 @@ const Tasks = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="section-title mb-2">
-            {user?.userType === "startup" ? "Your Posted Tasks" : "Available Tasks"}
+            {user?.userType === "startup"
+              ? "Your Posted Tasks"
+              : "Available Tasks"}
           </h1>
           <p className="section-subtitle">
-            {user?.userType === "startup" 
+            {user?.userType === "startup"
               ? "Manage and review task submissions from students"
-              : "Browse and submit work for available opportunities"
-            }
+              : "Browse and submit work for available opportunities"}
           </p>
         </div>
 
         {/* Search and Filters */}
         <div className="card-elegant mb-8">
           <div className="flex flex-col lg:flex-row gap-4 items-center">
-            {/* Search */}
             <div className="relative flex-1 w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
@@ -409,65 +514,33 @@ const Tasks = () => {
               />
             </div>
 
-            {/* Filter Toggle */}
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="btn-ghost"
             >
-              <Filter className="w-5 h-5 mr-2" />
-              Filters
+              <Filter className="w-5 h-5 mr-2" /> Filters
             </button>
           </div>
 
-          {/* Expanded Filters */}
           {showFilters && (
             <div className="mt-6 pt-6 border-t border-gray-200 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                             <select
-                 value={categoryFilter}
-                 onChange={(e) => setCategoryFilter(e.target.value)}
-                 className="input-field-elegant"
-               >
-                 <option value="">All Categories</option>
-                 <optgroup label="Technical Categories">
-                   <option value="development">Development</option>
-                   <option value="design">Design</option>
-                   <option value="data-analysis">Data Analysis</option>
-                   <option value="testing">Testing</option>
-                   <option value="devops">DevOps</option>
-                   <option value="mobile-development">Mobile Development</option>
-                   <option value="web-development">Web Development</option>
-                   <option value="ai-ml">AI/ML</option>
-                   <option value="cybersecurity">Cybersecurity</option>
-                   <option value="database">Database</option>
-                   <option value="api-development">API Development</option>
-                   <option value="cloud-computing">Cloud Computing</option>
-                 </optgroup>
-                 <optgroup label="Non-Technical Categories">
-                   <option value="marketing">Marketing</option>
-                   <option value="research">Research</option>
-                   <option value="writing">Writing</option>
-                   <option value="content-creation">Content Creation</option>
-                   <option value="social-media">Social Media</option>
-                   <option value="business-development">Business Development</option>
-                   <option value="sales">Sales</option>
-                   <option value="customer-support">Customer Support</option>
-                   <option value="project-management">Project Management</option>
-                   <option value="hr-recruitment">HR/Recruitment</option>
-                   <option value="finance-accounting">Finance/Accounting</option>
-                   <option value="legal">Legal</option>
-                   <option value="operations">Operations</option>
-                   <option value="event-management">Event Management</option>
-                   <option value="translation">Translation</option>
-                   <option value="other">Other</option>
-                 </optgroup>
-               </select>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="input-field-elegant"
+              >
+                <option value="">All Categories</option>
+                <option value="development">Development</option>
+                <option value="design">Design</option>
+                <option value="marketing">Marketing</option>
+                <option value="other">Other</option>
+              </select>
 
               <input
                 type="date"
                 value={deadlineFilter}
                 onChange={(e) => setDeadlineFilter(e.target.value)}
                 className="input-field-elegant"
-                placeholder="Deadline"
               />
 
               {user?.userType === "student" && (
@@ -497,66 +570,95 @@ const Tasks = () => {
 
         {/* Content */}
         {user?.userType === "startup" ? (
-          // Startup View
           <div>
             {allTasks.length === 0 ? (
               <div className="text-center py-16 card-elegant">
                 <Briefcase className="w-20 h-20 text-gray-300 mx-auto mb-6" />
-                <h3 className="text-2xl font-semibold text-primary-dark mb-4">No tasks posted yet</h3>
+                <h3 className="text-2xl font-semibold text-primary-dark mb-4">
+                  No tasks posted yet
+                </h3>
                 <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                  Start posting tasks to connect with talented students and get your projects completed.
+                  Start posting tasks to connect with talented students and get
+                  your projects completed.
                 </p>
-                <button className="btn-primary mx-auto flex items-center gap-2">
-                  <Plus className="w-5 h-5" />
-                  Post Your First Task
-                </button>
+                <Link
+                  to="/startup/post-work"
+                  className="btn-primary mx-auto flex items-center gap-2"
+                >
+                  <Plus className="w-5 h-5" /> Post Your First Task
+                </Link>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filterAndSortTasks(allTasks).map((task) => renderTaskCard(task, false))}
+                {filterAndSortTasks(allTasks).map((task) =>
+                  renderTaskCard(task, false)
+                )}
               </div>
             )}
+
+            {/* Students list removed for startup view */}
           </div>
         ) : (
-          // Student View
+          // Student view
           <div className="space-y-12">
-            {/* Assigned Tasks */}
             <div>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-1 h-8 bg-primary-button rounded-full"></div>
-                <h2 className="text-2xl font-bold text-primary-dark">Your Assigned Tasks</h2>
+                <h2 className="text-2xl font-bold text-primary-dark">
+                  Your Assigned Tasks
+                </h2>
               </div>
-              
+
               {assignedTasks.length === 0 ? (
                 <div className="text-center py-12 card-elegant">
                   <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-primary-dark mb-2">No assigned tasks</h3>
-                  <p className="text-gray-600">You don't have any tasks assigned at the moment.</p>
+                  <h3 className="text-lg font-semibold text-primary-dark mb-2">
+                    No assigned tasks
+                  </h3>
+                  <p className="text-gray-600">
+                    You don't have any tasks assigned at the moment.
+                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filterAndSortTasks(assignedTasks).map((task) => renderTaskCard(task, true))}
+                  {filterAndSortTasks(assignedTasks).map((task) =>
+                    renderTaskCard(task, true)
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Available Tasks */}
             <div>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-1 h-8 bg-primary-button rounded-full"></div>
-                <h2 className="text-2xl font-bold text-primary-dark">Available Tasks</h2>
+                <h2 className="text-2xl font-bold text-primary-dark">
+                  Available Tasks
+                </h2>
               </div>
-              
-              {allTasks.filter((t) => t.status === "open" && (!t.assignedStudent || t.assignedStudent._id !== user?.id)).length === 0 ? (
+
+              {allTasks.filter(
+                (t) =>
+                  t.status === "open" &&
+                  (!t.assignedStudent || t.assignedStudent._id !== user?.id)
+              ).length === 0 ? (
                 <div className="text-center py-12 card-elegant">
                   <Plus className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-primary-dark mb-2">No available tasks</h3>
-                  <p className="text-gray-600">Check back later for new opportunities.</p>
+                  <h3 className="text-lg font-semibold text-primary-dark mb-2">
+                    No available tasks
+                  </h3>
+                  <p className="text-gray-600">
+                    Check back later for new opportunities.
+                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filterAndSortTasks(
-                    allTasks.filter((t) => t.status === "open" && (!t.assignedStudent || t.assignedStudent._id !== user?.id))
+                    allTasks.filter(
+                      (t) =>
+                        t.status === "open" &&
+                        (!t.assignedStudent ||
+                          t.assignedStudent._id !== user?.id)
+                    )
                   ).map((task) => renderTaskCard(task, false))}
                 </div>
               )}
@@ -564,6 +666,43 @@ const Tasks = () => {
           </div>
         )}
       </div>
+
+      {/* Lightbox */}
+      {lightboxOpen && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center p-4">
+          <div className="max-w-4xl w-full">
+            <div className="bg-white rounded-md overflow-hidden">
+              <div className="p-2 flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  {lightboxIndex + 1} / {lightboxImages.length}
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={prevLightbox} className="btn-ghost">
+                    Prev
+                  </button>
+                  <button onClick={nextLightbox} className="btn-ghost">
+                    Next
+                  </button>
+                  <button onClick={closeLightbox} className="btn-ghost">
+                    Close
+                  </button>
+                </div>
+              </div>
+              <div className="bg-black">
+                <img
+                  src={lightboxImages[lightboxIndex]}
+                  alt={`img-${lightboxIndex}`}
+                  className="w-full max-h-[70vh] object-contain bg-black"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/vite.svg";
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

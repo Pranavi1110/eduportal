@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "react-query";
 import { fetchStudentProfile, updateStudentProfile } from "../routes/profile";
 import { useAuth } from "../hooks/useAuth";
 import toast from "react-hot-toast";
+import Avatar from "../../components/common/Avatar";
 
 const Profile = () => {
   const { authData } = useAuth();
@@ -15,17 +16,40 @@ const Profile = () => {
     () => fetchStudentProfile(token),
     { enabled: !!token }
   );
-  const student = data?.student || {};
-  const badges = data?.student?.badges || [];
-  const certificates = data?.student?.certificates || [];
+  // server /dashboard returns { user, tasks }
+  const student = data?.user || {};
+  const badges = data?.user?.badges || [];
+  const certificates = data?.user?.certificates || [];
 
   // Editable state
   const [form, setForm] = useState({
+    profilePicture: student.profilePicture || "",
     bio: student.bio || "",
     projects: student.projects || [],
     experience: student.experience || [],
     skills: student.skills || [],
   });
+
+  // keep form in sync when student data loads
+  useEffect(() => {
+    setForm({
+      profilePicture: student.profilePicture || "",
+      bio: student.bio || "",
+      projects: student.projects || [],
+      experience: student.experience || [],
+      skills: student.skills || [],
+    });
+    // Debug: log fetched student and form initialization
+    // eslint-disable-next-line no-console
+    console.log("[Profile] fetched data:", data);
+    // eslint-disable-next-line no-console
+    console.log("[Profile] student:", student);
+    // eslint-disable-next-line no-console
+    console.log("[Profile] initialized form:", {
+      profilePicture: student.profilePicture || "",
+      bio: student.bio || "",
+    });
+  }, [student]);
   // For adding new project/exp/skill
   const [newProject, setNewProject] = useState({
     title: "",
@@ -43,13 +67,19 @@ const Profile = () => {
   const [newSkill, setNewSkill] = useState({ name: "", level: "beginner" });
 
   // Update mutation
-  const updateMutation = useMutation((data) => updateStudentProfile(data), {
-    onSuccess: () => {
-      toast.success("Profile updated!");
-      queryClient.invalidateQueries(["student-profile"]);
-    },
-    onError: (err) => toast.error(err.message || "Update failed"),
-  });
+  const updateMutation = useMutation(
+    ({ userId, data }) => updateStudentProfile(userId, data),
+    {
+      onSuccess: () => {
+        toast.success("Profile updated!");
+        // Debug: log success
+        // eslint-disable-next-line no-console
+        console.log("[Profile] update success - invalidating queries");
+        queryClient.invalidateQueries(["student-profile"]);
+      },
+      onError: (err) => toast.error(err.message || "Update failed"),
+    }
+  );
 
   // Handlers
   const handleChange = (e) =>
@@ -90,7 +120,8 @@ const Profile = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    updateMutation.mutate(form);
+    // ensure we send userId + data shape expected by the client route
+    updateMutation.mutate({ userId: student._id, data: form });
   };
 
   if (isLoading)
@@ -100,6 +131,61 @@ const Profile = () => {
     <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow mt-8">
       <h2 className="text-2xl font-bold mb-4">Edit Profile</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Profile picture upload */}
+        <div>
+          <label className="block font-semibold mb-1">Profile picture</label>
+          <div className="flex items-center gap-4">
+            <Avatar
+              src={form.profilePicture || student.profilePicture}
+              name={`${student.firstName || ""} ${student.lastName || ""}`}
+              sizeClass="w-16 h-16"
+              className="rounded-full"
+            />
+            <div className="flex-1">
+              <input
+                type="file"
+                accept="image/*"
+                name="avatar"
+                onChange={async (e) => {
+                  const file = e.target.files && e.target.files[0];
+                  if (!file) return;
+                  // show temporary preview
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    setForm((f) => ({ ...f, profilePicture: reader.result }));
+                  };
+                  reader.readAsDataURL(file);
+
+                  // upload to server
+                  try {
+                    const formData = new FormData();
+                    formData.append("avatar", file);
+                    const res = await fetch("/api/uploads/avatar", {
+                      method: "POST",
+                      body: formData,
+                    });
+                    const json = await res.json();
+                    if (res.ok && json.url) {
+                      setForm((f) => ({ ...f, profilePicture: json.url }));
+                    } else {
+                      throw new Error(json.error || "Upload failed");
+                    }
+                  } catch (err) {
+                    // eslint-disable-next-line no-console
+                    console.error("Upload error", err);
+                    alert("Failed to upload image");
+                  }
+                }}
+                className=""
+              />
+              <div className="text-xs text-gray-500 mt-1">
+                Upload a square image for best results. File will be stored on
+                the server.
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Bio */}
         <div>
           <label className="block font-semibold mb-1">Bio</label>

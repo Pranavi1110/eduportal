@@ -36,18 +36,13 @@ const nonTechnicalCategories = [
   "other",
 ];
 
-const workTypes = [
-  "technical",
-  "non-technical"
-];
-
-const difficulties = ["beginner", "intermediate", "advanced", "expert"];
-const priorities = ["low", "medium", "high", "urgent"];
+const workTypes = ["technical", "non-technical"];
 
 const PostWork = () => {
   const [form, setForm] = useState({
     title: "",
     description: "",
+    imageUrls: [],
     category: "",
     workType: "",
     skills: "",
@@ -65,21 +60,15 @@ const PostWork = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-    
-    // Reset category when work type changes
+    setForm((prev) => ({ ...prev, [name]: value }));
     if (name === "workType") {
-      setForm(prev => ({ ...prev, [name]: value, category: "" }));
+      setForm((prev) => ({ ...prev, category: "", workType: value }));
     }
   };
 
-  // Get categories based on selected work type
   const getCategories = () => {
-    if (form.workType === "technical") {
-      return technicalCategories;
-    } else if (form.workType === "non-technical") {
-      return nonTechnicalCategories;
-    }
+    if (form.workType === "technical") return technicalCategories;
+    if (form.workType === "non-technical") return nonTechnicalCategories;
     return [];
   };
 
@@ -89,12 +78,11 @@ const PostWork = () => {
     setStudents([]);
     setSelectedStudent("");
     try {
-      // Fetch users from User model where userType is student and skills match
       const res = await api.get("/users", {
         params: { userType: "student", skills: form.skills },
       });
-      setStudents(res.data);
-    } catch {
+      setStudents(res.data || []);
+    } catch (err) {
       setStudents([]);
     }
     setSearching(false);
@@ -106,19 +94,34 @@ const PostWork = () => {
     try {
       const payload = {
         ...form,
-        skills: form.skills.split(",").map((s) => s.trim()),
-        budget: { min: Number(form.budgetMin), max: Number(form.budgetMax) },
-        estimatedHours: Number(form.estimatedHours),
+        skills: form.skills ? form.skills.split(",").map((s) => s.trim()) : [],
+        budget: {
+          min: Number(form.budgetMin) || 0,
+          max: Number(form.budgetMax) || 0,
+        },
+        estimatedHours: Number(form.estimatedHours) || 0,
         deadline: form.deadline,
       };
-      if (selectedStudent) {
-        payload.assignedStudent = selectedStudent;
+
+      const images = Array.isArray(form.imageUrls)
+        ? form.imageUrls.filter(Boolean)
+        : [];
+      if (images.length > 0) {
+        payload.imageUrl = images[0];
+        payload.attachments = images.map((url, idx) => ({
+          name: `image_${idx}`,
+          url,
+        }));
       }
+
+      if (selectedStudent) payload.assignedStudent = selectedStudent;
+
       await api.post("/startup/tasks", payload);
       toast.success("Work posted!");
       setForm({
         title: "",
         description: "",
+        imageUrls: [],
         category: "",
         workType: "",
         skills: "",
@@ -133,6 +136,7 @@ const PostWork = () => {
       setSelectedStudent("");
     } catch (e) {
       toast.error("Failed to post work");
+      console.error(e);
     }
     setLoading(false);
   };
@@ -151,6 +155,7 @@ const PostWork = () => {
             required
           />
         </div>
+
         <div>
           <label className="block font-medium">Description</label>
           <textarea
@@ -161,6 +166,44 @@ const PostWork = () => {
             required
           />
         </div>
+
+        <div>
+          <label className="block font-medium">Upload Images (optional)</label>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={async (e) => {
+              const files = Array.from(e.target.files || []);
+              if (files.length === 0) return;
+              const uploaded = [];
+              for (const file of files) {
+                try {
+                  const fd = new FormData();
+                  fd.append("avatar", file);
+                  const res = await fetch("/api/uploads/avatar", {
+                    method: "POST",
+                    body: fd,
+                  });
+                  const json = await res.json();
+                  if (res.ok && json.url) uploaded.push(json.url);
+                } catch (err) {
+                  console.error("Image upload failed", err);
+                }
+              }
+              if (uploaded.length > 0)
+                setForm((prev) => ({
+                  ...prev,
+                  imageUrls: [...(prev.imageUrls || []), ...uploaded],
+                }));
+            }}
+            className="input-field"
+          />
+          <div className="text-xs text-gray-500 mt-1">
+            You can upload multiple images. They will be attached to the post.
+          </div>
+        </div>
+
         <div>
           <label className="block font-medium">Work Type</label>
           <select
@@ -178,6 +221,7 @@ const PostWork = () => {
             ))}
           </select>
         </div>
+
         <div>
           <label className="block font-medium">Category</label>
           <select
@@ -185,22 +229,28 @@ const PostWork = () => {
             value={form.category}
             onChange={handleChange}
             className="input-field"
-            required
             disabled={!form.workType}
+            required
           >
             <option value="">
-              {form.workType 
-                ? `Select ${form.workType.charAt(0).toUpperCase() + form.workType.slice(1)} Category`
-                : "Select Work Type First"
-              }
+              {form.workType
+                ? `Select ${
+                    form.workType.charAt(0).toUpperCase() +
+                    form.workType.slice(1)
+                  } Category`
+                : "Select Work Type First"}
             </option>
             {getCategories().map((c) => (
               <option key={c} value={c}>
-                {c.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                {c
+                  .split("-")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ")}
               </option>
             ))}
           </select>
         </div>
+
         <div>
           <label className="block font-medium">Skills (comma separated)</label>
           <div className="flex gap-2">
@@ -269,6 +319,7 @@ const PostWork = () => {
             </div>
           </div>
         )}
+
         <div>
           <label className="block font-medium">Estimated Hours</label>
           <input
@@ -281,6 +332,7 @@ const PostWork = () => {
             min="1"
           />
         </div>
+
         <div>
           <label className="block font-medium">Deadline</label>
           <input

@@ -13,6 +13,10 @@ const taskSchema = new mongoose.Schema(
       required: [true, "Please provide task description"],
       maxlength: [1000, "Task description cannot be more than 1000 characters"],
     },
+    imageUrl: {
+      type: String,
+      trim: true,
+    },
     category: {
       type: String,
       required: [true, "Please provide task category"],

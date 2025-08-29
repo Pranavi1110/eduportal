@@ -33,6 +33,7 @@ import {
   Filter,
   X,
 } from "lucide-react";
+import Avatar from "../../components/common/Avatar";
 import { fetchAllCertificates } from "../../routes/certificates";
 
 const StudentDashboard = () => {
@@ -223,13 +224,17 @@ const StudentDashboard = () => {
       <div className="gradient-bg-elegant text-primary-cta sticky top-0 z-40">
         <div className="container-responsive py-6">
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-garamond font-bold">
-                Welcome back, {user?.firstName}!
-              </h1>
-              <p className="text-base md:text-lg text-gray-200 mt-1">Here's what's happening with your tasks</p>
-            </div>
-            {/* Notifications */}
+            <Avatar
+              src={user?.profilePicture || user?.avatar || user?.image || ""}
+              name={`${
+                user?.firstName ||
+                user?.username ||
+                (user?.email || "").split("@")[0] ||
+                "User"
+              } ${user?.lastName || ""}`.trim()}
+              sizeClass="w-12 h-12"
+              className="rounded-md"
+            />
             <div className="relative">
               <button
                 title="Notifications"
@@ -247,7 +252,9 @@ const StudentDashboard = () => {
               {showNotifications && (
                 <div className="absolute top-12 right-0 bg-primary-white rounded-xl shadow-elegant border border-gray-200 w-80 z-50 p-4 max-h-96 overflow-y-auto">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-primary-dark">Notifications</h3>
+                    <h3 className="text-lg font-semibold text-primary-dark">
+                      Notifications
+                    </h3>
                     <button
                       className="text-gray-500 hover:text-primary-dark p-1 rounded-full hover:bg-primary-card"
                       onClick={() => setShowNotifications(false)}
@@ -269,7 +276,9 @@ const StudentDashboard = () => {
                             key={notif._id || idx}
                             className="p-4 rounded-lg bg-yellow-50 border border-yellow-200 hover:shadow-soft transition-shadow"
                           >
-                            <div className="font-medium text-primary-dark mb-1">{notif.message}</div>
+                            <div className="font-medium text-primary-dark mb-1">
+                              {notif.message}
+                            </div>
                             <div className="text-xs text-gray-600 mb-2">
                               {new Date(notif.createdAt).toLocaleString()}
                             </div>
@@ -335,7 +344,9 @@ const StudentDashboard = () => {
           <div className="rounded-2xl shadow-soft p-6 text-primary-dark bg-primary-card border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-4xl font-bold">{completedTasks.length}</div>
+                <div className="text-4xl font-bold">
+                  {completedTasks.length}
+                </div>
                 <div className="text-gray-600">Completed</div>
               </div>
               <Trophy className="w-8 h-8 text-primary-button" />
@@ -377,8 +388,12 @@ const StudentDashboard = () => {
               {assignedTasks.length === 0 ? (
                 <div className="text-center py-12">
                   <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-primary-dark mb-2">No active tasks</h3>
-                  <p className="text-gray-600 mb-4">You don't have any tasks assigned at the moment.</p>
+                  <h3 className="text-lg font-semibold text-primary-dark mb-2">
+                    No active tasks
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    You don't have any tasks assigned at the moment.
+                  </p>
                   <button
                     onClick={() => navigate("/tasks")}
                     className="btn-secondary"
@@ -417,12 +432,11 @@ const StudentDashboard = () => {
                       </p>
 
                       <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="badge-secondary text-xs">{task.category}</span>
+                        <span className="badge-secondary text-xs">
+                          {task.category}
+                        </span>
                         {task.skills?.slice(0, 2).map((skill, idx) => (
-                          <span
-                            key={idx}
-                            className="badge-secondary text-xs"
-                          >
+                          <span key={idx} className="badge-secondary text-xs">
                             {skill}
                           </span>
                         ))}
@@ -430,7 +444,10 @@ const StudentDashboard = () => {
 
                       <div className="flex items-center justify-between">
                         <div className="text-sm text-gray-700">
-                          From: <span className="font-semibold">{task.startup?.companyName || "Unknown"}</span>
+                          From:{" "}
+                          <span className="font-semibold">
+                            {task.startup?.companyName || "Unknown"}
+                          </span>
                         </div>
                         <div className="flex gap-2">
                           <button
@@ -440,7 +457,9 @@ const StudentDashboard = () => {
                             View Details
                           </button>
                           <button
-                            onClick={() => navigate(`/chat/${task.startup?._id}`)}
+                            onClick={() =>
+                              navigate(`/chat/${task.startup?._id}`)
+                            }
                             className="p-2 text-primary-button hover:bg-primary-card rounded-lg transition-colors"
                             title="Chat with startup"
                           >
@@ -471,7 +490,9 @@ const StudentDashboard = () => {
               ) : availableTasks.length === 0 ? (
                 <div className="text-center py-8">
                   <Plus className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600">No available tasks at the moment</p>
+                  <p className="text-gray-600">
+                    No available tasks at the moment
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -488,12 +509,11 @@ const StudentDashboard = () => {
                       </p>
 
                       <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="badge-secondary text-xs">{task.category}</span>
+                        <span className="badge-secondary text-xs">
+                          {task.category}
+                        </span>
                         {task.skills?.slice(0, 2).map((skill, idx) => (
-                          <span
-                            key={idx}
-                            className="badge-secondary text-xs"
-                          >
+                          <span key={idx} className="badge-secondary text-xs">
                             {skill}
                           </span>
                         ))}
@@ -504,7 +524,10 @@ const StudentDashboard = () => {
                       </div>
 
                       <div className="text-sm text-gray-700 mb-4">
-                        From: <span className="font-semibold">{task.startup?.companyName || "Unknown"}</span>
+                        From:{" "}
+                        <span className="font-semibold">
+                          {task.startup?.companyName || "Unknown"}
+                        </span>
                       </div>
 
                       <div className="space-y-3">
@@ -523,13 +546,22 @@ const StudentDashboard = () => {
                         <div className="flex gap-2">
                           <button
                             className="btn-primary flex-1"
-                            onClick={() => handleSubmitTask(task._id, submission[task._id])}
-                            disabled={submitting[task._id] || !submission[task._id]?.trim()}
+                            onClick={() =>
+                              handleSubmitTask(task._id, submission[task._id])
+                            }
+                            disabled={
+                              submitting[task._id] ||
+                              !submission[task._id]?.trim()
+                            }
                           >
-                            {submitting[task._id] ? "Submitting..." : "Submit Task"}
+                            {submitting[task._id]
+                              ? "Submitting..."
+                              : "Submit Task"}
                           </button>
                           <button
-                            onClick={() => navigate(`/chat/${task.startup?._id}`)}
+                            onClick={() =>
+                              navigate(`/chat/${task.startup?._id}`)
+                            }
                             className="p-2 text-primary-button hover:bg-primary-card rounded-lg transition-colors"
                             title="Chat with startup"
                           >
@@ -572,9 +604,13 @@ const StudentDashboard = () => {
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <CheckCircle className="w-4 h-4 text-green-700" />
-                        <span className="text-green-800 font-medium text-sm">Completed</span>
+                        <span className="text-green-800 font-medium text-sm">
+                          Completed
+                        </span>
                       </div>
-                      <h3 className="font-semibold text-primary-dark text-sm mb-1">{task.title}</h3>
+                      <h3 className="font-semibold text-primary-dark text-sm mb-1">
+                        {task.title}
+                      </h3>
                       <div className="text-xs text-gray-600 mb-2">
                         {task.completedAt
                           ? new Date(task.completedAt).toLocaleDateString()
@@ -606,27 +642,88 @@ const StudentDashboard = () => {
                 <p className="text-gray-700 text-sm">No startups found.</p>
               ) : (
                 <div className="space-y-3">
-                  {startups.slice(0, 3).map((startup) => (
-                    <div
-                      key={startup._id}
-                      className="bg-primary-card rounded-lg border border-gray-200 p-4"
-                    >
-                      <h3 className="font-semibold text-primary-dark text-sm mb-1">
-                        {startup.companyName || startup.firstName || "Startup"}
-                      </h3>
-                      <p className="text-xs text-gray-600 mb-2">{startup.email}</p>
-                      <button
-                        onClick={() => navigate(`/chat/${startup._id}`)}
-                        className="btn-secondary text-xs px-3 py-1"
+                  {startups.slice(0, 8).map((startup) => {
+                    const logo =
+                      startup.profilePicture ||
+                      startup.logo ||
+                      startup.companyLogo ||
+                      startup.avatar ||
+                      startup.image ||
+                      "/vite.svg";
+                    const name =
+                      startup.companyName ||
+                      startup.firstName ||
+                      startup.username ||
+                      "Startup";
+                    const email = startup.email || startup.contactEmail || "";
+                    return (
+                      <div
+                        key={startup._id}
+                        className="flex items-center gap-3 bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow"
                       >
-                        Connect
-                      </button>
-                    </div>
-                  ))}
+                        {(() => {
+                          const imgSrc =
+                            startup.profilePicture ||
+                            startup.logo ||
+                            startup.companyLogo ||
+                            startup.avatar ||
+                            "";
+                          const displayName = name || "Company";
+                          const initials = displayName
+                            .split(" ")
+                            .map((w) => w.charAt(0))
+                            .slice(0, 2)
+                            .join("")
+                            .toUpperCase();
+                          return imgSrc ? (
+                            <img
+                              src={imgSrc}
+                              alt={displayName}
+                              className="w-12 h-12 rounded-md object-cover border"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-md bg-gray-100 flex items-center justify-center text-sm font-semibold text-primary-dark border">
+                              {initials}
+                            </div>
+                          );
+                        })()}
+
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm text-primary-dark truncate">
+                            {name}
+                          </div>
+                          {email && (
+                            <div className="text-xs text-gray-500 truncate">
+                              {email}
+                            </div>
+                          )}
+                          {startup.companyDescription && (
+                            <div className="text-xs text-gray-600 truncate mt-1">
+                              {startup.companyDescription}
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <button
+                            onClick={() => navigate(`/chat/${startup._id}`)}
+                            className="btn-secondary text-sm px-3 py-1"
+                          >
+                            Connect
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               <div className="text-xs text-gray-500 mt-4">
-                For more opportunities, check the community or contact your program coordinator.
+                For more opportunities, check the community or contact your
+                program coordinator.
               </div>
             </div>
           </div>

@@ -1,0 +1,214 @@
+import React, { useState, useEffect } from "react";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import api from "../../services/api";
+import { useAuth } from "../../hooks/useAuth";
+import { MessageSquare, Briefcase, ArrowRight, Plus, Bell } from "lucide-react";
+
+const StudentDashboard = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const [startups, setStartups] = useState([]);
+  const [startupsLoading, setStartupsLoading] = useState(true);
+  const [availableTasks, setAvailableTasks] = useState([]);
+  const [availableTasksLoading, setAvailableTasksLoading] = useState(true);
+  const [submission, setSubmission] = useState({});
+  const [submitting, setSubmitting] = useState({});
+
+  useEffect(() => {
+    const fetchStartups = async () => {
+      setStartupsLoading(true);
+      try {
+        const res = await api.get("/startup/all");
+        setStartups(res.data || []);
+      } catch (e) {
+        setStartups([]);
+      }
+      setStartupsLoading(false);
+    };
+
+    const fetchAvailableTasks = async () => {
+      setAvailableTasksLoading(true);
+      try {
+        const res = await api.get("/student/tasks/all");
+        setAvailableTasks(res.data || []);
+      } catch (e) {
+        setAvailableTasks([]);
+      }
+      setAvailableTasksLoading(false);
+    };
+
+    fetchStartups();
+    fetchAvailableTasks();
+  }, []);
+
+  const handleSubmitTask = async (taskId, link) => {
+    if (!link || !link.trim()) return;
+    setSubmitting((s) => ({ ...s, [taskId]: true }));
+    try {
+      await api.post(`/student/tasks/${taskId}/submit-link`, { link });
+      toast.success("Task submitted");
+      setAvailableTasks((prev) => prev.filter((t) => t._id !== taskId));
+      setSubmission((s) => ({ ...s, [taskId]: "" }));
+    } catch (e) {
+      toast.error("Submit failed");
+    }
+    setSubmitting((s) => ({ ...s, [taskId]: false }));
+  };
+
+  return (
+    <div className="min-h-screen bg-primary-white">
+      <div className="gradient-bg-elegant text-primary-cta sticky top-0 z-40">
+        <div className="container-responsive py-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-garamond font-bold">
+              Welcome back, {user?.firstName}!
+            </h1>
+            <p className="text-base md:text-lg text-gray-200 mt-1">
+              Overview of your tasks
+            </p>
+          </div>
+          <div>
+            <Bell className="w-6 h-6 text-primary-dark" />
+          </div>
+        </div>
+      </div>
+
+      <section className="container-responsive section-padding">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="card-elegant">
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-2xl font-bold text-primary-dark flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-primary-button" /> My Tasks
+                </h2>
+                <button
+                  onClick={() => navigate("/tasks")}
+                  className="btn-primary"
+                >
+                  <ArrowRight className="w-4 h-4 mr-2" /> View All
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {availableTasksLoading ? (
+                  <div className="text-center py-8">Loading tasks...</div>
+                ) : availableTasks.length === 0 ? (
+                  <div className="text-center py-12 text-gray-600">
+                    No tasks available
+                  </div>
+                ) : (
+                  availableTasks.slice(0, 5).map((task) => (
+                    <div key={task._id} className="border rounded-xl p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold">{task.title}</div>
+                          <div className="text-xs text-gray-500">
+                            {task.category} • {task.workType}
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {task.deadline
+                            ? new Date(task.deadline).toLocaleDateString()
+                            : "—"}
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-700 mt-2 line-clamp-3">
+                        {task.description}
+                      </p>
+                      <div className="flex gap-2 mt-3">
+                        <input
+                          className="input-field-elegant flex-1"
+                          placeholder="Submission URL"
+                          value={submission[task._id] || ""}
+                          onChange={(e) =>
+                            setSubmission((s) => ({
+                              ...s,
+                              [task._id]: e.target.value,
+                            }))
+                          }
+                        />
+                        <button
+                          className="btn-primary"
+                          onClick={() =>
+                            handleSubmitTask(task._id, submission[task._id])
+                          }
+                          disabled={submitting[task._id]}
+                        >
+                          {submitting[task._id] ? "Submitting..." : "Submit"}
+                        </button>
+                        <button
+                          onClick={() => navigate(`/chat/${task.startup?._id}`)}
+                          className="p-2 text-primary-button hover:bg-primary-card rounded-lg"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          <aside>
+            <div className="bg-white rounded-lg p-4 shadow-sm border sticky top-24">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold">Startups</h3>
+                <div className="text-sm text-gray-500">Connect</div>
+              </div>
+              <div className="space-y-3">
+                {startupsLoading ? (
+                  <div className="text-sm text-gray-500">
+                    Loading startups...
+                  </div>
+                ) : startups.length === 0 ? (
+                  <div className="text-gray-500 text-sm">No startups found</div>
+                ) : (
+                  startups.slice(0, 6).map((s) => (
+                    <div key={s._id} className="flex items-start gap-3">
+                      <img
+                        src={s.logo || s.companyLogo || "/vite.svg"}
+                        alt={s.companyName || "Startup"}
+                        className="w-10 h-10 rounded-md object-cover border"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "/vite.svg";
+                        }}
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-semibold text-sm">
+                              {s.companyName || s.firstName || "Startup"}
+                            </div>
+                            {s.companyDescription && (
+                              <div className="text-xs text-gray-500 line-clamp-2">
+                                {s.companyDescription}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <button
+                              onClick={() => navigate(`/chat/${s._id}`)}
+                              className="btn-secondary text-xs px-3 py-1"
+                            >
+                              Connect
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default StudentDashboard;
