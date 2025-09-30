@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import logo from "../../../hb.jpg";
 import { Link, useLocation } from "react-router-dom";
 import {
   Menu,
@@ -30,6 +31,7 @@ const Navbar = () => {
   const navigation = [
     { name: "Home", href: "/", icon: Home },
     { name: "Dashboard", href: "/dashboard", icon: User },
+    // Tasks shown only for non-admins; render conditionally below
     { name: "Tasks", href: "/tasks", icon: Briefcase },
     { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Messages", href: "/messages", icon: MessageSquare },
@@ -54,9 +56,11 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center focus-visible-elegant">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-banner to-primary-button rounded-lg flex items-center justify-center mr-2 shadow-soft">
-                <span className="text-primary-cta font-bold text-sm">H</span>
-              </div>
+              <img
+                src={logo}
+                alt="Hubinity logo"
+                className="w-8 h-8 rounded-lg object-cover mr-2 shadow-soft"
+              />
               <span className="text-xl font-garamond font-bold text-primary-dark">
                 Hubinity
               </span>
@@ -66,22 +70,32 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`nav-link focus-visible-elegant ${
-                    isActive(item.href)
-                      ? "nav-link-active"
-                      : "nav-link-inactive"
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              ))}
+              {navigation.map((item) => {
+                // Hide Tasks, Chat and Messages links for admin
+                if (
+                  (item.name === "Tasks" ||
+                    item.name === "Chat" ||
+                    item.name === "Messages") &&
+                  user?.userType === "admin"
+                )
+                  return null;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`nav-link focus-visible-elegant ${
+                      isActive(item.href)
+                        ? "nav-link-active"
+                        : "nav-link-inactive"
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                );
+              })}
 
               {/* Certificates link only for non-startup users; Submissions link for startups */}
-              {user?.userType !== "startup" && (
+              {user?.userType !== "startup" && user?.userType !== "admin" && (
                 <Link
                   key="Certificates"
                   to="/certificates"
@@ -222,24 +236,30 @@ const Navbar = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-primary-white border-t border-gray-200 shadow-soft">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
-                  isActive(item.href)
-                    ? "text-primary-button bg-primary-card shadow-soft"
-                    : "text-gray-600 hover:text-primary-dark hover:bg-gray-50"
-                }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {React.createElement(item.icon, { className: "mr-3 h-5 w-5" })}
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              if (item.name === "Tasks" && user?.userType === "admin")
+                return null;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+                    isActive(item.href)
+                      ? "text-primary-button bg-primary-card shadow-soft"
+                      : "text-gray-600 hover:text-primary-dark hover:bg-gray-50"
+                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {React.createElement(item.icon, {
+                    className: "mr-3 h-5 w-5",
+                  })}
+                  {item.name}
+                </Link>
+              );
+            })}
 
             {/* Certificates link only for non-startup users (mobile); Submissions link for startups */}
-            {user?.userType !== "startup" && (
+            {user?.userType !== "startup" && user?.userType !== "admin" && (
               <Link
                 key="Certificates"
                 to="/certificates"

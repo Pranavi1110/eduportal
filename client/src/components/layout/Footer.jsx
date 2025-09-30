@@ -1,6 +1,7 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Linkedin, Twitter, Facebook } from 'lucide-react';
+import React from "react";
+import logo from "../../../hb.jpg";
+import { Link } from "react-router-dom";
+import { Mail, Phone, MapPin, Linkedin, Twitter, Facebook } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -10,14 +11,16 @@ const Footer = () => {
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-primary-button rounded-lg flex items-center justify-center shadow-soft">
-                <span className="text-primary-dark font-bold text-sm">H</span>
-              </div>
+              <img
+                src={logo}
+                alt="Hubinity logo"
+                className="w-8 h-8 rounded-lg object-cover mr-2 shadow-soft"
+              />
               <span className="text-2xl font-garamond font-bold">Hubinity</span>
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
-              Connecting talented students with innovative startups. Build your future, 
-              one project at a time.
+              Connecting talented students with innovative startups. Build your
+              future, one project at a time.
             </p>
             <div className="flex space-x-4">
               <a
@@ -46,7 +49,9 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-garamond font-semibold mb-4">Quick Links</h3>
+            <h3 className="text-lg font-garamond font-semibold mb-4">
+              Quick Links
+            </h3>
             <ul className="space-y-2">
               <li>
                 <Link
@@ -85,19 +90,39 @@ const Footer = () => {
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-lg font-garamond font-semibold mb-4">Contact Us</h3>
+            <h3 className="text-lg font-garamond font-semibold mb-4">
+              Contact Us
+            </h3>
             <ul className="space-y-3">
               <li className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-primary-button" />
-                <span className="text-gray-300">hello@hubinity.com</span>
+                <span className="text-gray-300">
+                  For support, mail us at:{" "}
+                  <a
+                    href="https://mail.google.com/mail/?view=cm&fs=1&to=support@hubinity.in"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-300 hover:text-primary-button transition-colors"
+                    aria-label="Email support"
+                  >
+                    support@hubinity.in
+                  </a>
+                </span>
               </li>
               <li className="flex items-center space-x-2">
-                <Phone className="w-4 h-4 text-primary-button" />
-                <span className="text-gray-300">+1 (555) 123-4567</span>
-              </li>
-              <li className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4 text-primary-button" />
-                <span className="text-gray-300">San Francisco, CA</span>
+                <Mail className="w-4 h-4 text-primary-button" />
+                <span className="text-gray-300">
+                  For information, mail us at:{" "}
+                  <a
+                    href="https://mail.google.com/mail/?view=cm&fs=1&to=info@hubinity.in"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-300 hover:text-primary-button transition-colors"
+                    aria-label="Email info"
+                  >
+                    info@hubinity.in
+                  </a>
+                </span>
               </li>
             </ul>
           </div>
@@ -107,7 +132,7 @@ const Footer = () => {
         <div className="border-t border-gray-700 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-300 text-sm">
-              © 2024 Hubinity. All rights reserved.
+              © 2025 Hubinity. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link
@@ -136,4 +161,4 @@ const Footer = () => {
   );
 };
 
-export default Footer; 
+export default Footer;

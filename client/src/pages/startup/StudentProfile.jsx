@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Mail, Users, Briefcase, Award, Link2, Calendar, MessageSquare } from "lucide-react";
+import { useParams, Link, useLocation } from "react-router-dom";
+import { ArrowLeft, Mail, Users, Briefcase, Award, Link2, Calendar, MessageSquare, FileText } from "lucide-react";
 import api from "../../services/api";
 
 const StudentProfile = () => {
   const { studentId } = useParams();
+  const location = useLocation();
+  const isAdminView = location.pathname.includes('/admin/');
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submissions, setSubmissions] = useState([]);
@@ -144,6 +146,32 @@ const StudentProfile = () => {
                 </div>
               )}
             </div>
+
+            {/* Resume Section */}
+            {student.resume && (
+              <div className="card-elegant">
+                <h2 className="text-2xl font-bold text-primary-dark mb-4 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary-button" /> Resume
+                </h2>
+                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                  <div className="w-12 h-12 bg-primary-button rounded-lg flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-primary-dark">Student Resume</div>
+                    <div className="text-sm text-gray-600">Click to view or download</div>
+                  </div>
+                  <a
+                    href={student.resume}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary"
+                  >
+                    View Resume
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-8">
@@ -187,15 +215,17 @@ const StudentProfile = () => {
               )}
             </div>
 
-            <div className="card-elegant">
-              <h2 className="text-2xl font-bold text-primary-dark mb-4 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-primary-button" /> Contact
-              </h2>
-              <div className="text-sm text-gray-700">Reach out to the student directly.</div>
-              <div className="mt-4">
-                <Link to={`/chat/${student._id}`} className="btn-primary">Start Chat</Link>
+            {!isAdminView && (
+              <div className="card-elegant">
+                <h2 className="text-2xl font-bold text-primary-dark mb-4 flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-primary-button" /> Contact
+                </h2>
+                <div className="text-sm text-gray-700">Reach out to the student directly.</div>
+                <div className="mt-4">
+                  <Link to={`/chat/${student._id}`} className="btn-primary">Start Chat</Link>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </section>

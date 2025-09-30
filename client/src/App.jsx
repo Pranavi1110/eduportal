@@ -30,6 +30,10 @@ import Register from "./pages/auth/Register";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import StartupDashboard from "./pages/startup/StartupDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminStudentView from "./pages/admin/AdminStudentView";
+import AdminStartupView from "./pages/admin/AdminStartupView";
+import AdminStudentTasks from "./pages/admin/AdminStudentTasks";
+import AdminStartupTasks from "./pages/admin/AdminStartupTasks";
 import Profile from "./pages/Profile";
 import Tasks from "./pages/Tasks";
 import Messages from "./pages/Messages";
@@ -185,7 +189,7 @@ const App = () => {
                 <Route
                   path="/messages"
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedUserTypes={["student", "startup"]}>
                       <Messages />
                     </ProtectedRoute>
                   }
@@ -193,7 +197,7 @@ const App = () => {
                 <Route
                   path="/chat"
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedUserTypes={["student", "startup"]}>
                       <Chat />
                     </ProtectedRoute>
                   }
@@ -201,7 +205,7 @@ const App = () => {
                 <Route
                   path="/chat/:userId"
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedUserTypes={["student", "startup"]}>
                       <Chat />
                     </ProtectedRoute>
                   }
@@ -289,6 +293,54 @@ const App = () => {
                   element={
                     <ProtectedRoute allowedUserTypes={["admin"]}>
                       <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/students/:studentId"
+                  element={
+                    <ProtectedRoute allowedUserTypes={["admin"]}>
+                      <AdminStudentView />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/students/:studentId/tasks"
+                  element={
+                    <ProtectedRoute allowedUserTypes={["admin"]}>
+                      <AdminStudentTasks />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/students/:studentId/profile"
+                  element={
+                    <ProtectedRoute allowedUserTypes={["admin"]}>
+                      <StudentProfile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/startups/:startupId"
+                  element={
+                    <ProtectedRoute allowedUserTypes={["admin"]}>
+                      <AdminStartupView />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/startups/:startupId/profile"
+                  element={
+                    <ProtectedRoute allowedUserTypes={["admin"]}>
+                      <StartupProfile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/startups/:startupId/tasks"
+                  element={
+                    <ProtectedRoute allowedUserTypes={["admin"]}>
+                      <AdminStartupTasks />
                     </ProtectedRoute>
                   }
                 />

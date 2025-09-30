@@ -237,6 +237,9 @@ app.use("/api/startup", startupRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/uploads", uploadsRoutes);
+// Admin routes
+const adminRoutes = require("./routes/admin");
+app.use("/api/admin", adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

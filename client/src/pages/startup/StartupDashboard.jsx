@@ -9,7 +9,11 @@ import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import { Building, Users, Briefcase, Plus, Eye } from "lucide-react";
 
-const StartupDashboard = () => {
+const StartupDashboard = ({
+  viewStartupId = null,
+  viewStartupData = null,
+  isAdminView = false,
+}) => {
   const { user, authData } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
@@ -55,7 +59,44 @@ const StartupDashboard = () => {
   };
 
   useEffect(() => {
-    fetchDashboard();
+    if (viewStartupId) {
+      // admin is viewing a specific startup; fetch profile and tasks
+      const fetchImpersonated = async () => {
+        setLoading(true);
+        try {
+          if (isAdminView) {
+            const module = await import("../../routes/admin");
+            const data = await module.fetchAdminStartupDashboard(viewStartupId);
+            setProfile(data.startup);
+            setTasks(data.tasks || []);
+          } else {
+            const prof =
+              viewStartupData ||
+              (await api.get(`/users/${viewStartupId}`).then((r) => r.data));
+            setProfile(prof);
+            // fetch tasks and filter those belonging to this startup
+            const res = await api.get("/startup/tasks");
+            const allTasks = res.data || [];
+            const filtered = allTasks.filter((t) => {
+              if (!t.startup) return false;
+              return (
+                (typeof t.startup === "object" && t.startup._id === prof._id) ||
+                t.startup === prof._id
+              );
+            });
+            setTasks(filtered);
+          }
+        } catch (err) {
+          console.error("Error fetching impersonated startup dashboard", err);
+          setProfile(viewStartupData || null);
+          setTasks([]);
+        }
+        setLoading(false);
+      };
+      fetchImpersonated();
+    } else {
+      fetchDashboard();
+    }
     // Fetch notifications for startup
     const fetchNotifications = async () => {
       const token = authData?.token;
@@ -117,6 +158,11 @@ const StartupDashboard = () => {
       </div>
     );
 
+  // prefer impersonated data when admin viewing a startup
+  const displayStartup = viewStartupId
+    ? profile || viewStartupData || {}
+    : profile || user || {};
+
   return (
     <>
       <Helmet>
@@ -134,10 +180,14 @@ const StartupDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl md:text-4xl font-garamond font-bold">
-                  Welcome back, {user?.firstName || profile?.companyName}!
+                  Welcome back,{" "}
+                  {displayStartup?.firstName ||
+                    displayStartup?.companyName ||
+                    user?.firstName}
+                  !
                 </h1>
                 <p className="text-base md:text-lg text-gray-200 mt-1">
-                  Here's what's happening with your startup
+                  Here's what's happening with this startup
                 </p>
               </div>
               <div className="flex space-x-3 items-center">
@@ -232,20 +282,42 @@ const StartupDashboard = () => {
                   )}
                 </div>
                 {/* ...existing buttons... */}
-                <button
-                  className="btn-primary"
-                  onClick={() => navigate("/startup/browse-students")}
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  Browse Students
-                </button>
-                <button
-                  className="btn-primary"
-                  onClick={() => navigate("/startup/post-work")}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Post New Work
-                </button>
+                {!isAdminView && (
+                  <button
+                    className="btn-primary"
+                    onClick={() => navigate("/startup/browse-students")}
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Browse Students
+                  </button>
+                )}
+                {!isAdminView && (
+                  <button
+                    className="btn-primary"
+                    onClick={() => navigate("/startup/post-work")}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Post New Work
+                  </button>
+                )}
+                {viewStartupId && (
+                  <button
+                    className="btn-ghost"
+                    onClick={() => {
+                      const id =
+                        displayStartup._id ||
+                        displayStartup.id ||
+                        displayStartup.email;
+                      if (isAdminView) {
+                        navigate(`/admin/startups/${id}/profile`);
+                        return;
+                      }
+                      navigate(`/startup/${id}`);
+                    }}
+                  >
+                    View Profile →
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -340,38 +412,39 @@ const StartupDashboard = () => {
                             </td>
                             <td className="px-4 py-2">
                               {(sub.status === "pending" ||
-                                sub.status === "under-review") && (
-                                <>
-                                  <button
-                                    className="btn-primary mr-2"
-                                    onClick={() =>
-                                      handleSubmissionAction(
-                                        sub.taskId,
-                                        typeof sub.student === "object"
-                                          ? sub.student._id
-                                          : sub.student,
-                                        true
-                                      )
-                                    }
-                                  >
-                                    Approve
-                                  </button>
-                                  <button
-                                    className="btn-ghost text-red-600"
-                                    onClick={() =>
-                                      handleSubmissionAction(
-                                        sub.taskId,
-                                        typeof sub.student === "object"
-                                          ? sub.student._id
-                                          : sub.student,
-                                        false
-                                      )
-                                    }
-                                  >
-                                    Reject
-                                  </button>
-                                </>
-                              )}
+                                sub.status === "under-review") &&
+                                !isAdminView && (
+                                  <>
+                                    <button
+                                      className="btn-primary mr-2"
+                                      onClick={() =>
+                                        handleSubmissionAction(
+                                          sub.taskId,
+                                          typeof sub.student === "object"
+                                            ? sub.student._id
+                                            : sub.student,
+                                          true
+                                        )
+                                      }
+                                    >
+                                      Approve
+                                    </button>
+                                    <button
+                                      className="btn-ghost text-red-600"
+                                      onClick={() =>
+                                        handleSubmissionAction(
+                                          sub.taskId,
+                                          typeof sub.student === "object"
+                                            ? sub.student._id
+                                            : sub.student,
+                                          false
+                                        )
+                                      }
+                                    >
+                                      Reject
+                                    </button>
+                                  </>
+                                )}
                               {sub.status === "approved" && (
                                 <span className="text-green-700 font-semibold">
                                   Approved
@@ -400,7 +473,14 @@ const StartupDashboard = () => {
                   </h2>
                   <button
                     className="btn-ghost text-sm"
-                    onClick={() => navigate("/startup/tasks")}
+                    onClick={() => {
+                      if (isAdminView && viewStartupId) {
+                        const id = displayStartup._id || displayStartup.id || viewStartupId;
+                        navigate(`/admin/startups/${id}/tasks`);
+                      } else {
+                        navigate("/startup/tasks");
+                      }
+                    }}
                   >
                     View All
                   </button>
@@ -449,68 +529,72 @@ const StartupDashboard = () => {
             </div>
 
             {/* Quick Actions & Analytics */}
-            <div className="space-y-6">
-              {/* Quick Actions */}
-              <div className="card-elegant">
-                <h2 className="text-2xl font-bold text-primary-dark mb-4">
-                  Quick Actions
-                </h2>
-                <div className="space-y-3">
-                  <button
-                    className="w-full flex items-center p-3 text-left hover:bg-primary-card rounded-lg transition-colors"
-                    onClick={() => navigate("/startup/tasks")}
-                  >
-                    <Briefcase className="w-5 h-5 text-primary-button mr-3" />
-                    <span>View My Works</span>
-                  </button>
-                  <button
-                    className="w-full flex items-center p-3 text-left hover:bg-primary-card rounded-lg transition-colors"
-                    onClick={() => navigate("/startup/browse-students")}
-                  >
-                    <Users className="w-5 h-5 text-primary-button mr-3" />
-                    <span>Browse Students</span>
-                  </button>
-                  <button
-                    className="w-full flex items-center p-3 text-left hover:bg-primary-card rounded-lg transition-colors"
-                    onClick={() => navigate("/profile")}
-                  >
-                    <Building className="w-5 h-5 text-primary-button mr-3" />
-                    <span>Update Profile</span>
-                  </button>
+            {!isAdminView && (
+              <div className="space-y-6">
+                {/* Quick Actions */}
+                <div className="card-elegant">
+                  <h2 className="text-2xl font-bold text-primary-dark mb-4">
+                    Quick Actions
+                  </h2>
+                  <div className="space-y-3">
+                    <button
+                      className="w-full flex items-center p-3 text-left hover:bg-primary-card rounded-lg transition-colors"
+                      onClick={() => navigate("/startup/tasks")}
+                    >
+                      <Briefcase className="w-5 h-5 text-primary-button mr-3" />
+                      <span>View My Works</span>
+                    </button>
+                    <button
+                      className="w-full flex items-center p-3 text-left hover:bg-primary-card rounded-lg transition-colors"
+                      onClick={() => navigate("/startup/browse-students")}
+                    >
+                      <Users className="w-5 h-5 text-primary-button mr-3" />
+                      <span>Browse Students</span>
+                    </button>
+                    <button
+                      className="w-full flex items-center p-3 text-left hover:bg-primary-card rounded-lg transition-colors"
+                      onClick={() => {
+                        navigate("/profile");
+                      }}
+                    >
+                      <Building className="w-5 h-5 text-primary-button mr-3" />
+                      <span>Update Profile</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Company Stats */}
-              <div className="card-elegant">
-                <h2 className="text-2xl font-bold text-primary-dark mb-4">
-                  Company Stats
-                </h2>
-                <div className="space-y-3">
-                  <div className="flex items-center p-3 bg-primary-card rounded-lg">
-                    <Building className="w-5 h-5 text-primary-button mr-3" />
-                    <div>
-                      <p className="font-medium text-primary-dark">
-                        {profile?.companyName}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {profile?.tier ? profile.tier.replace("-", " ") : ""}{" "}
-                        Startup
-                      </p>
+                {/* Company Stats */}
+                <div className="card-elegant">
+                  <h2 className="text-2xl font-bold text-primary-dark mb-4">
+                    Company Stats
+                  </h2>
+                  <div className="space-y-3">
+                    <div className="flex items-center p-3 bg-primary-card rounded-lg">
+                      <Building className="w-5 h-5 text-primary-button mr-3" />
+                      <div>
+                        <p className="font-medium text-primary-dark">
+                          {profile?.companyName}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {profile?.tier ? profile.tier.replace("-", " ") : ""}{" "}
+                          Startup
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center p-3 bg-primary-card rounded-lg">
-                    <Users className="w-5 h-5 text-primary-button mr-3" />
-                    <div>
-                      <p className="font-medium text-primary-dark">
-                        {(tasks || []).filter((t) => t.assignedStudent).length}{" "}
-                        Students
-                      </p>
-                      <p className="text-sm text-gray-600">Currently working</p>
+                    <div className="flex items-center p-3 bg-primary-card rounded-lg">
+                      <Users className="w-5 h-5 text-primary-button mr-3" />
+                      <div>
+                        <p className="font-medium text-primary-dark">
+                          {(tasks || []).filter((t) => t.assignedStudent).length}{" "}
+                          Students
+                        </p>
+                        <p className="text-sm text-gray-600">Currently working</p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

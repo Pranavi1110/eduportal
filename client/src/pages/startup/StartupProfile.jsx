@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
+import { useParams, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import api from "../../services/api";
 import Avatar from "../../components/common/Avatar";
 
 const StartupProfile = () => {
   const { user } = useAuth();
+  const { startupId } = useParams();
+  const location = useLocation();
+  const isAdminView = location.pathname.includes('/admin/');
   const [profile, setProfile] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState({});
@@ -13,14 +17,22 @@ const StartupProfile = () => {
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [startupId, isAdminView]);
 
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/startup/dashboard");
-      setProfile(res.data.startup);
-      setForm(res.data.startup);
+      if (isAdminView && startupId) {
+        // Admin viewing specific startup
+        const res = await api.get(`/users/${startupId}`);
+        setProfile(res.data);
+        setForm(res.data);
+      } else {
+        // Regular startup user viewing own profile
+        const res = await api.get("/startup/dashboard");
+        setProfile(res.data.startup);
+        setForm(res.data.startup);
+      }
     } catch (err) {
       toast.error("Failed to load profile");
     }
@@ -163,21 +175,27 @@ const StartupProfile = () => {
           <div className="mb-2">
             <b>Company Name:</b> {profile.companyName}
           </div>
-          <div className="mb-2">
-            <b>Industry:</b> {profile.industry}
-          </div>
-          <div className="mb-2">
-            <b>Description:</b> {profile.companyDescription}
-          </div>
-          <div className="mb-2">
-            <b>Company Size:</b> {profile.companySize}
-          </div>
-          <button
-            className="btn-primary mt-4"
-            onClick={() => setEditMode(true)}
-          >
-            Edit Profile
-          </button>
+          {!isAdminView && (
+            <>
+              <div className="mb-2">
+                <b>Industry:</b> {profile.industry}
+              </div>
+              <div className="mb-2">
+                <b>Description:</b> {profile.companyDescription}
+              </div>
+              <div className="mb-2">
+                <b>Company Size:</b> {profile.companySize}
+              </div>
+            </>
+          )}
+          {!isAdminView && (
+            <button
+              className="btn-primary mt-4"
+              onClick={() => setEditMode(true)}
+            >
+              Edit Profile
+            </button>
+          )}
         </div>
       )}
     </div>
