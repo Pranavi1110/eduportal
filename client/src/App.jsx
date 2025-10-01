@@ -25,6 +25,7 @@ import Footer from "./components/layout/Footer";
 
 // Pages
 import Home from "./pages/Home";
+import HelpCenter from "./pages/HelpCenter";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import StudentDashboard from "./pages/student/StudentDashboard";
@@ -131,222 +132,39 @@ const App = () => {
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Home />} />
-                <Route
-                  path="/login"
-                  element={
-                    <PublicRoute>
-                      <Login />
-                    </PublicRoute>
-                  }
-                />
-                <Route
-                  path="/register"
-                  element={
-                    <PublicRoute>
-                      <Register />
-                    </PublicRoute>
-                  }
-                />
-                <Route
-                  path="/forgot-password"
-                  element={
-                    <PublicRoute>
-                      <React.Suspense fallback={<div>Loading...</div>}>
-                        <ForgotPassword />
-                      </React.Suspense>
-                    </PublicRoute>
-                  }
-                />
-                <Route
-                  path="/reset-password"
-                  element={
-                    <PublicRoute>
-                      <React.Suspense fallback={<div>Loading...</div>}>
-                        <ResetPassword />
-                      </React.Suspense>
-                    </PublicRoute>
-                  }
-                />
-
+                <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+                <Route path="/forgot-password" element={<PublicRoute><React.Suspense fallback={<div>Loading...</div>}><ForgotPassword /></React.Suspense></PublicRoute>} />
+                <Route path="/reset-password" element={<PublicRoute><React.Suspense fallback={<div>Loading...</div>}><ResetPassword /></React.Suspense></PublicRoute>} />
                 {/* Protected Routes */}
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardRoute />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  }
-                />
+                <Route path="/dashboard" element={<ProtectedRoute><DashboardRoute /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/tasks" element={<Tasks />} />
-                <Route
-                  path="/messages"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["student", "startup"]}>
-                      <Messages />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/chat"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["student", "startup"]}>
-                      <Chat />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/chat/:userId"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["student", "startup"]}>
-                      <Chat />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/certificates"
-                  element={
-                    <ProtectedRoute>
-                      <Certificates />
-                    </ProtectedRoute>
-                  }
-                />
-
+                <Route path="/messages" element={<ProtectedRoute allowedUserTypes={["student", "startup"]}><Messages /></ProtectedRoute>} />
+                <Route path="/chat" element={<ProtectedRoute allowedUserTypes={["student", "startup"]}><Chat /></ProtectedRoute>} />
+                <Route path="/chat/:userId" element={<ProtectedRoute allowedUserTypes={["student", "startup"]}><Chat /></ProtectedRoute>} />
+                <Route path="/certificates" element={<ProtectedRoute><Certificates /></ProtectedRoute>} />
                 {/* Student Routes */}
-                <Route
-                  path="/student/dashboard"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["student"]}>
-                      <StudentDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-
+                <Route path="/student/dashboard" element={<ProtectedRoute allowedUserTypes={["student"]}><StudentDashboard /></ProtectedRoute>} />
                 {/* Startup Routes */}
-                <Route
-                  path="/startup/dashboard"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["startup"]}>
-                      <StartupDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/startup/post-work"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["startup"]}>
-                      <PostWork />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/startup/browse-students"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["startup"]}>
-                      <BrowseStudents />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/startup/students"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["startup"]}>
-                      <Students />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/startup/students/:studentId"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["startup"]}>
-                      <StudentProfile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/startup/submissions"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["startup"]}>
-                      <Submissions />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/startup/tasks"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["startup"]}>
-                      <StartupTasks />
-                    </ProtectedRoute>
-                  }
-                />
-
+                <Route path="/startup/dashboard" element={<ProtectedRoute allowedUserTypes={["startup"]}><StartupDashboard /></ProtectedRoute>} />
+                <Route path="/startup/post-work" element={<ProtectedRoute allowedUserTypes={["startup"]}><PostWork /></ProtectedRoute>} />
+                <Route path="/startup/browse-students" element={<ProtectedRoute allowedUserTypes={["startup"]}><BrowseStudents /></ProtectedRoute>} />
+                <Route path="/startup/students" element={<ProtectedRoute allowedUserTypes={["startup"]}><Students /></ProtectedRoute>} />
+                <Route path="/startup/students/:studentId" element={<ProtectedRoute allowedUserTypes={["startup"]}><StudentProfile /></ProtectedRoute>} />
+                <Route path="/startup/submissions" element={<ProtectedRoute allowedUserTypes={["startup"]}><Submissions /></ProtectedRoute>} />
+                <Route path="/startup/tasks" element={<ProtectedRoute allowedUserTypes={["startup"]}><StartupTasks /></ProtectedRoute>} />
                 {/* Admin Routes */}
-                <Route
-                  path="/admin/dashboard"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["admin"]}>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/students/:studentId"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["admin"]}>
-                      <AdminStudentView />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/students/:studentId/tasks"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["admin"]}>
-                      <AdminStudentTasks />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/students/:studentId/profile"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["admin"]}>
-                      <StudentProfile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/startups/:startupId"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["admin"]}>
-                      <AdminStartupView />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/startups/:startupId/profile"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["admin"]}>
-                      <StartupProfile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/startups/:startupId/tasks"
-                  element={
-                    <ProtectedRoute allowedUserTypes={["admin"]}>
-                      <AdminStartupTasks />
-                    </ProtectedRoute>
-                  }
-                />
-
+                <Route path="/admin/dashboard" element={<ProtectedRoute allowedUserTypes={["admin"]}><AdminDashboard /></ProtectedRoute>} />
+                <Route path="/admin/students/:studentId" element={<ProtectedRoute allowedUserTypes={["admin"]}><AdminStudentView /></ProtectedRoute>} />
+                <Route path="/admin/students/:studentId/tasks" element={<ProtectedRoute allowedUserTypes={["admin"]}><AdminStudentTasks /></ProtectedRoute>} />
+                <Route path="/admin/students/:studentId/profile" element={<ProtectedRoute allowedUserTypes={["admin"]}><StudentProfile /></ProtectedRoute>} />
+                <Route path="/admin/startups/:startupId" element={<ProtectedRoute allowedUserTypes={["admin"]}><AdminStartupView /></ProtectedRoute>} />
+                <Route path="/admin/startups/:startupId/profile" element={<ProtectedRoute allowedUserTypes={["admin"]}><StartupProfile /></ProtectedRoute>} />
+                <Route path="/admin/startups/:startupId/tasks" element={<ProtectedRoute allowedUserTypes={["admin"]}><AdminStartupTasks /></ProtectedRoute>} />
                 {/* Catch all route */}
                 <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="/help" element={<HelpCenter />} />
               </Routes>
             </main>
             <Footer />
@@ -357,14 +175,15 @@ const App = () => {
               duration: 4000,
               style: {
                 background: "#363636",
-                color: "#fff",
-              },
+                color: "#fff"
+              }
             }}
           />
         </Router>
       </HelmetProvider>
     </QueryClientProvider>
   );
-};
 
+}
 export default App;
+

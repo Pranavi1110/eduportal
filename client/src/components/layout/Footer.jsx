@@ -1,7 +1,8 @@
 import React from "react";
 import logo from "../../../logo.jpg";
 import { Link } from "react-router-dom";
-import { Mail, Phone, MapPin, Linkedin, Twitter, Facebook } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
+import { FaInstagram } from "react-icons/fa";
 
 const Footer = () => {
   return (
@@ -24,25 +25,13 @@ const Footer = () => {
             </p>
             <div className="flex space-x-4">
               <a
-                href="#"
+                href="https://www.instagram.com/hubinity.in?igsh=MXg1MHQydXlpczRvZg=="
                 className="text-gray-300 hover:text-primary-button transition-colors"
-                aria-label="LinkedIn"
+                aria-label="Instagram"
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                <Linkedin className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="text-gray-300 hover:text-primary-button transition-colors"
-                aria-label="Twitter"
-              >
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="text-gray-300 hover:text-primary-button transition-colors"
-                aria-label="Facebook"
-              >
-                <Facebook className="w-5 h-5" />
+                <FaInstagram className="w-5 h-5" />
               </a>
             </div>
           </div>
@@ -134,19 +123,7 @@ const Footer = () => {
             <p className="text-gray-300 text-sm">
               © 2025 Hubinity. All rights reserved.
             </p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link
-                to="/privacy"
-                className="text-gray-300 hover:text-primary-button text-sm transition-colors"
-              >
-                Privacy Policy
-              </Link>
-              <Link
-                to="/terms"
-                className="text-gray-300 hover:text-primary-button text-sm transition-colors"
-              >
-                Terms of Service
-              </Link>
+            <div className="flex mt-4 md:mt-0">
               <Link
                 to="/help"
                 className="text-gray-300 hover:text-primary-button text-sm transition-colors"

@@ -22,6 +22,9 @@ app.use(
   express.static(path.join(__dirname, "uploads"))
 );
 
+// Help Center route
+app.use("/api/help", require("./routes/help"));
+
 // MongoDB connection
 mongoose
   .connect(process.env.MONGODB_URI, {
