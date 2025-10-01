@@ -1,5 +1,5 @@
 import React from "react";
-import logo from "../../../hb.jpg";
+import logo from "../../../logo.jpg";
 import { Link } from "react-router-dom";
 import { Mail, Phone, MapPin, Linkedin, Twitter, Facebook } from "lucide-react";
 

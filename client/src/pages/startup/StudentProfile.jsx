@@ -105,17 +105,62 @@ const StudentProfile = () => {
               <div className="text-gray-700 whitespace-pre-wrap">{student.bio || "No bio provided."}</div>
               {skills.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="font-semibold text-primary-dark mb-2">Skills</h3>
-                  <div className="flex flex-wrap gap-2">
+                  <h3 className="font-semibold text-primary-dark mb-3">Skills</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {skills.map((sk, idx) => (
-                      <span key={idx} className="badge-secondary text-xs">
-                        {sk?.name || sk}
-                      </span>
+                      <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <span className="font-medium text-primary-dark">
+                            {sk?.name || sk}
+                          </span>
+                          {sk?.isVerified && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                              Verified
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600 capitalize">
+                          {sk?.level || 'beginner'}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
               )}
             </div>
+
+            {/* Experience Section */}
+            {student.experience && student.experience.length > 0 && (
+              <div className="card-elegant">
+                <h2 className="text-2xl font-bold text-primary-dark mb-4 flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-primary-button" /> Experience
+                </h2>
+                <div className="space-y-4">
+                  {student.experience.map((exp, idx) => (
+                    <div key={idx} className="border border-gray-200 rounded-xl p-4 bg-primary-white">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-semibold text-primary-dark">{exp.title}</div>
+                          <div className="text-sm text-primary-button font-medium">{exp.company}</div>
+                          {exp.description && (
+                            <div className="text-sm text-gray-700 mt-2">{exp.description}</div>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500 text-right">
+                          <div>
+                            {new Date(exp.startDate).toLocaleDateString()} - 
+                            {exp.isCurrent ? " Present" : exp.endDate ? new Date(exp.endDate).toLocaleDateString() : " N/A"}
+                          </div>
+                          {exp.isCurrent && (
+                            <div className="text-green-600 font-medium">Current</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="card-elegant">
               <h2 className="text-2xl font-bold text-primary-dark mb-4 flex items-center gap-2">

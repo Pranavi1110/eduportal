@@ -164,12 +164,34 @@ const Students = () => {
                         ))
                       )}
                     </div>
+                    
+                    {/* Experience Summary */}
+                    {s.experience && s.experience.length > 0 && (
+                      <div className="mt-3">
+                        <div className="text-xs text-gray-500 mb-1">Recent Experience:</div>
+                        <div className="text-sm text-gray-700">
+                          {s.experience.slice(0, 1).map((exp, idx) => (
+                            <div key={idx} className="truncate">
+                              {exp.title} at {exp.company}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-4 flex items-center justify-between text-sm text-gray-700">
                     <div className="flex items-center gap-3">
                       <Briefcase className="w-4 h-4 text-primary-button" />
                       <span>{projectsCount} projects</span>
+                      {s.experience && s.experience.length > 0 && (
+                        <span className="text-gray-500">• {s.experience.length} exp</span>
+                      )}
+                      {s.resume && s.resume.trim() !== "" && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                          Resume
+                        </span>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <Link
@@ -178,6 +200,16 @@ const Students = () => {
                       >
                         View
                       </Link>
+                      {s.resume && s.resume.trim() !== "" && (
+                        <a
+                          href={s.resume}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-secondary text-sm px-3 py-1"
+                        >
+                          Resume
+                        </a>
+                      )}
                       <Link
                         to={`/chat/${s._id}`}
                         className="btn-primary text-sm px-3 py-1"

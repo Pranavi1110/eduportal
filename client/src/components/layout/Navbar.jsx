@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import logo from "../../../hb.jpg";
+import logo from "../../../logo.jpg";
 import { Link, useLocation } from "react-router-dom";
 import {
   Menu,

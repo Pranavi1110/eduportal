@@ -47,6 +47,15 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
       pass: process.env.SMTP_PASS,
     },
   });
+  
+  // Verify SMTP connection
+  mailTransporter.verify((error, success) => {
+    if (error) {
+      console.error('SMTP connection error:', error);
+    } else {
+      console.log('SMTP server is ready to take our messages');
+    }
+  });
 } else {
   console.warn(
     "SMTP not configured. Forgot-password emails will be logged to console. Set SMTP_HOST/SMTP_USER/SMTP_PASS in .env to enable real emails."
@@ -84,7 +93,7 @@ app.post("/api/register", async (req, res) => {
 
       if (mailTransporter) {
         await mailTransporter.sendMail({
-          from: process.env.SMTP_FROM || process.env.SMTP_USER,
+          from: `"Hubinity Support" <support@hubinity.in>`,
           to: user.email,
           subject: mailSubject,
           text: mailText,
@@ -114,6 +123,14 @@ app.post("/api/login", async (req, res) => {
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    // Update last login timestamp
+    try {
+      user.lastLogin = new Date();
+      await user.save();
+    } catch (e) {
+      console.error("Error updating last login:", e);
     }
     const token = jwt.sign(
       { id: user._id, userType: user.userType },
@@ -175,7 +192,7 @@ app.post("/api/forgot-password", async (req, res) => {
 
     if (mailTransporter) {
       const info = await mailTransporter.sendMail({
-        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+        from: `"Hubinity Support" <support@hubinity.in>`,
         to: user.email,
         subject: mailSubject,
         text: mailText,
