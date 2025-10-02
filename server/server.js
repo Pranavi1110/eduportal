@@ -10,10 +10,15 @@ const app = express();
 const FRONTEND_URL = "https://hubinity-umha.onrender.com"; // your deployed frontend
 
 // CORS: explicitly reflect the requesting Origin and allow credentials
-const allowedOrigin = FRONTEND_URL;
+const allowedOrigins = [
+  FRONTEND_URL,
+  "https://hubinity.in",
+  "https://www.hubinity.in"
+];
+
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (origin === allowedOrigin) {
+  if (allowedOrigins.includes(origin)) {
     res.header("Access-Control-Allow-Origin", origin);
     res.header("Vary", "Origin");
     res.header("Access-Control-Allow-Credentials", "true");
@@ -35,12 +40,13 @@ app.use((req, res, next) => {
 // Keep cors middleware for safety (non-credentialed requests)
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 app.use(express.json());
 
 // Serve static files from certificates directory
