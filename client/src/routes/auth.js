@@ -1,7 +1,9 @@
 // Registration route using fetch
+const API_BASE = import.meta.env.VITE_API_BASE || "https://hubinity.onrender.com/api";
+
 export async function registerUser(userData) {
   console.log("Sending user data:", userData); 
-  const response = await fetch("http://localhost:5000/api/register", {
+  const response = await fetch(`${API_BASE}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(userData),
@@ -16,7 +18,7 @@ export async function registerUser(userData) {
 // Login route using fetch (with admin bootstrap fallback)
 export async function loginUser(credentials) {
   const attemptLogin = async () => {
-    const response = await fetch("http://localhost:5000/api/login", {
+    const response = await fetch(`${API_BASE}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(credentials),
@@ -37,7 +39,7 @@ export async function loginUser(credentials) {
       credentials?.password === "Hubinity@1234";
     if (!isAdminCreds) throw err;
     try {
-      await fetch("http://localhost:5000/api/admin/create-default-admin", {
+      await fetch(`${API_BASE}/admin/create-default-admin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: credentials.email, password: credentials.password }),

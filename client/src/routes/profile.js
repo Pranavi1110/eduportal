@@ -1,5 +1,5 @@
 // Student profile API for fetching and updating profile, badges, certificates
-const API_BASE = "http://localhost:5000/api/student";
+const API_BASE = `${(import.meta.env.VITE_API_BASE || "https://hubinity.onrender.com/api")}/student`;
 
 // Fetch student profile by userId (no auth required)
 export async function fetchStudentProfile(token) {

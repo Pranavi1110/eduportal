@@ -1,5 +1,5 @@
 // Fetch login details for the current student from users collection
-const API_BASE = "http://localhost:5000/api/student";
+const API_BASE = `${(import.meta.env.VITE_API_BASE || "https://hubinity.onrender.com/api")}/student`;
 
 export async function fetchLoginDetails(token) {
   const res = await fetch(`${API_BASE}/login-details`, {

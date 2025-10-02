@@ -1,5 +1,5 @@
 // Student API functions for dashboard, tasks, profile, badges/certificates
-const API_BASE = "http://localhost:5000/api/student";
+const API_BASE = `${(import.meta.env.VITE_API_BASE || "https://hubinity.onrender.com/api")}/student`;
 
 export async function fetchStudentDashboard(token) {
   const res = await fetch(`${API_BASE}/dashboard`, {
