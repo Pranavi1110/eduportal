@@ -7,7 +7,17 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 
 const app = express();
-app.use(cors());
+const FRONTEND_URL = "https://hubinity-umha.onrender.com"; // your deployed frontend
+
+const corsOptions = {
+  origin: FRONTEND_URL,        // exact frontend URL
+  credentials: true,           // allow cookies/auth headers
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // handle preflight OPTIONS requests
 app.use(express.json());
 
 // Serve static files from certificates directory
