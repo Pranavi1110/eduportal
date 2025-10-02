@@ -448,7 +448,7 @@ const Profile = () => {
               </p>
               <div className="flex gap-2">
                 <a
-                  href={cert.certificateUrl || cert.pdfUrl || "#"}
+                  href={`/api/student/certificates/${cert._id}/download`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs hover:bg-green-200"

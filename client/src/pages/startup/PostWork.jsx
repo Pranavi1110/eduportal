@@ -79,7 +79,7 @@ const PostWork = () => {
     setSelectedStudent("");
     try {
       const res = await api.get("/users", {
-        params: { userType: "student", skills: form.skills },
+        params: { role: "student", skills: form.skills },
       });
       setStudents(res.data || []);
     } catch (err) {

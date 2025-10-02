@@ -367,7 +367,10 @@ router.get(
 
       if (!fs.existsSync(filepath)) {
         console.log("Certificate file not found on disk");
-        return res.status(404).json({ error: "Certificate file not found" });
+        // Try to serve via static route as fallback
+        const staticUrl = `/api/certificates/${filename}`;
+        console.log("Redirecting to static URL:", staticUrl);
+        return res.redirect(staticUrl);
       }
 
       console.log("Certificate file found, sending download");
