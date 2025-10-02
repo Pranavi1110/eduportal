@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../../services/api";
 
 const BrowseStudents = () => {
@@ -112,15 +113,15 @@ const BrowseStudents = () => {
                       <span>{projectsCount} project{projectsCount !== 1 ? 's' : ''}</span>
                     </div>
                     <div className="flex gap-2">
-                      <a
-                        href={`/startup/students/${s._id}`}
+                      <Link
+                        to={`/startup/students/${s._id}`}
                         className="text-primary-button hover:text-primary-dark text-sm font-medium"
                       >
                         View Profile
-                      </a>
+                      </Link>
                       {hasResume && (
                         <a
-                          href={s.resume}
+                          href={s.resume.startsWith('http') ? s.resume : `https://hubinity.onrender.com${s.resume}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-green-600 hover:text-green-700 text-sm font-medium"

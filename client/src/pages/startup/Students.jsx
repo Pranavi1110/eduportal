@@ -202,7 +202,7 @@ const Students = () => {
                       </Link>
                       {s.resume && s.resume.trim() !== "" && (
                         <a
-                          href={s.resume}
+                          href={s.resume.startsWith('http') ? s.resume : `https://hubinity.onrender.com${s.resume}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="btn-secondary text-sm px-3 py-1"

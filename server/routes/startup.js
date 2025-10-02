@@ -204,6 +204,7 @@ router.post("/tasks", verifyJWT, async (req, res) => {
 router.get("/students", verifyJWT, async (req, res) => {
   try {
     const filters = req.query;
+    // Only return students, exclude admin and startup users
     const query = { userType: "student" };
     if (filters.skills) {
       const skillsArr = filters.skills
@@ -218,7 +219,7 @@ router.get("/students", verifyJWT, async (req, res) => {
         }));
       }
     }
-    const students = await User.find(query);
+    const students = await User.find(query).select("-password");
     res.json(students);
   } catch (err) {
     console.error("ERROR DEBUG", err);
@@ -355,42 +356,52 @@ router.post("/tasks/:taskId/approve", verifyJWT, async (req, res) => {
         skills: task.skills || [],
       };
 
-      const certificateFile = await certificateGenerator.generateCertificate(
-        certificateData
-      );
-      const certificate = new Certificate({
-        student: submissionStudentId,
-        startup: task.startup._id,
-        task: task._id,
-        title: task.title,
-        description: `Certificate for completing ${task.title}`,
-        skills: task.skills,
-        certificateNumber: certificateData.certificateNumber,
-        issuedAt: new Date(),
-        pdfUrl: `/api/student/certificates/${certificateFile.filename}`,
-        metadata: {
-          taskTitle: task.title,
-          taskCategory: task.category,
-          completionDate: task.completedAt,
-          hoursWorked: task.estimatedHours || 0,
-        },
-      });
-      await certificate.save();
+      try {
+        const certificateFile = await certificateGenerator.generateCertificate(
+          certificateData
+        );
+        const certificate = new Certificate({
+          student: submissionStudentId,
+          startup: task.startup._id,
+          task: task._id,
+          title: task.title,
+          description: `Certificate for completing ${task.title}`,
+          skills: task.skills,
+          certificateNumber: certificateData.certificateNumber,
+          issuedAt: new Date(),
+          pdfUrl: `/api/student/certificates/${certificateFile.filename}`,
+          metadata: {
+            taskTitle: task.title,
+            taskCategory: task.category,
+            completionDate: task.completedAt,
+            hoursWorked: task.estimatedHours || 0,
+          },
+        });
+        await certificate.save();
 
-      if (!student.certificates) student.certificates = [];
-      student.certificates.push(certificate._id);
-      await student.save();
+        if (!student.certificates) student.certificates = [];
+        student.certificates.push(certificate._id);
+        await student.save();
+      } catch (certError) {
+        console.error("Error generating certificate:", certError);
+        // Continue with approval even if certificate generation fails
+      }
 
       // Create notification for certificate generation
-      const notification = new Notification({
-        recipient: submissionStudentId,
-        sender: task.startup._id,
-        type: "certificate",
-        message: `Congratulations! Your certificate for "${task.title}" has been generated.`,
-        link: "/certificates",
-        read: false,
-      });
-      await notification.save();
+      try {
+        const notification = new Notification({
+          recipient: submissionStudentId,
+          sender: task.startup._id,
+          type: "certificate",
+          message: `Congratulations! Your certificate for "${task.title}" has been generated.`,
+          link: "/certificates",
+          read: false,
+        });
+        await notification.save();
+      } catch (notifError) {
+        console.error("Error creating notification:", notifError);
+        // Continue even if notification fails
+      }
     } else {
       submission.status = "rejected";
       submission.reviewedAt = new Date();
@@ -447,23 +458,28 @@ router.post("/tasks/:taskId/approve", verifyJWT, async (req, res) => {
       await task.save();
 
       // If rejected, notify student
-      console.log(
-        "Creating rejection notification for student:",
-        submission.student
-      );
-      const notification = new Notification({
-        recipient: submission.student,
-        sender: task.startup._id,
-        type: "task",
-        message: `Your submission for "${task.title}" was rejected by the startup.`,
-        link: "/tasks",
-        read: false,
-      });
-      await notification.save();
-      console.log(
-        "Rejection notification created successfully:",
-        notification._id
-      );
+      try {
+        console.log(
+          "Creating rejection notification for student:",
+          submission.student
+        );
+        const notification = new Notification({
+          recipient: submission.student,
+          sender: task.startup._id,
+          type: "task",
+          message: `Your submission for "${task.title}" was rejected by the startup.`,
+          link: "/tasks",
+          read: false,
+        });
+        await notification.save();
+        console.log(
+          "Rejection notification created successfully:",
+          notification._id
+        );
+      } catch (notifError) {
+        console.error("Error creating rejection notification:", notifError);
+        // Continue even if notification fails
+      }
     }
 
     // Send success response
@@ -500,15 +516,20 @@ router.post("/tasks/:taskId/review", verifyJWT, async (req, res) => {
     await task.save();
 
     // Notify student that submission is under review
-    const notification = new Notification({
-      recipient: studentId,
-      sender: task.startup?._id,
-      type: "task",
-      message: `Your submission for "${task.title}" is now under review.`,
-      link: "/tasks",
-      read: false,
-    });
-    await notification.save();
+    try {
+      const notification = new Notification({
+        recipient: studentId,
+        sender: task.startup?._id,
+        type: "task",
+        message: `Your submission for "${task.title}" is now under review.`,
+        link: "/tasks",
+        read: false,
+      });
+      await notification.save();
+    } catch (notifError) {
+      console.error("Error creating review notification:", notifError);
+      // Continue even if notification fails
+    }
 
     res.json({ message: "Submission moved to under review" });
   } catch (err) {

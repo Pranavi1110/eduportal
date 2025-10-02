@@ -207,7 +207,7 @@ const StudentProfile = () => {
                     <div className="text-sm text-gray-600">Click to view or download</div>
                   </div>
                   <a
-                    href={student.resume}
+                    href={student.resume.startsWith('http') ? student.resume : `https://hubinity.onrender.com${student.resume}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-primary"
