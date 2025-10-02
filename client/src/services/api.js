@@ -5,7 +5,8 @@ const API_BASE = import.meta.env.VITE_API_BASE || "https://hubinity.onrender.com
 
 const api = axios.create({
   baseURL: API_BASE,
-  withCredentials: true,
+  // Disable credentialed requests since we use Authorization header (Bearer token)
+  withCredentials: false,
 });
 
 // Add Authorization header with JWT if available

@@ -9,15 +9,38 @@ const crypto = require("crypto");
 const app = express();
 const FRONTEND_URL = "https://hubinity-umha.onrender.com"; // your deployed frontend
 
-const corsOptions = {
-  origin: FRONTEND_URL,        // exact frontend URL
-  credentials: true,           // allow cookies/auth headers
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
+// CORS: explicitly reflect the requesting Origin and allow credentials
+const allowedOrigin = FRONTEND_URL;
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin === allowedOrigin) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Vary", "Origin");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Authorization, Content-Type, Accept, X-Requested-With"
+    );
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    );
+  }
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // handle preflight OPTIONS requests
+// Keep cors middleware for safety (non-credentialed requests)
+app.use(
+  cors({
+    origin: allowedOrigin,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json());
 
 // Serve static files from certificates directory
