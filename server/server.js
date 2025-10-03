@@ -80,22 +80,32 @@ const jwt = require("jsonwebtoken");
 // Setup mail transporter using environment variables
 let mailTransporter = null;
 if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
+  // If SMTP_SECURE is provided, respect it. Otherwise infer from port (465 implies secure)
+  const smtpSecure = process.env.SMTP_SECURE
+    ? process.env.SMTP_SECURE === "true"
+    : smtpPort === 465;
+
   mailTransporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587,
-    secure: process.env.SMTP_SECURE === "false",
+    port: smtpPort,
+    secure: smtpSecure,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
+    // Timeouts to avoid long hangs on providers/platforms
+    connectionTimeout: 10000, // 10s
+    greetingTimeout: 10000,
+    socketTimeout: 20000,
   });
-  
-  // Verify SMTP connection
-  mailTransporter.verify((error, success) => {
+
+  // Verify SMTP connection (non-fatal)
+  mailTransporter.verify((error) => {
     if (error) {
-      console.error('SMTP connection error:', error);
+      console.error("SMTP connection error:", error);
     } else {
-      console.log('SMTP server is ready to take our messages');
+      console.log("SMTP server is ready to take our messages");
     }
   });
 } else {
